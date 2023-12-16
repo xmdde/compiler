@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include "CodeBlock.h"
 
 namespace logging {
 
@@ -24,6 +25,13 @@ public:
         output << msg << param << std::endl;
     }
 
+    void log(CondBlock* condBlock) {
+        output << "CondBlock (ID: " << condBlock->ID << ", " << condBlock->get_vals_to_logger() << ")" << std::endl;
+    }
+
+    void log(AssignBlock* assignBlock) {
+    }
+
     void close_logger() {
         for (auto it : log_list) {
             std::cout << it << std::endl;
@@ -35,6 +43,6 @@ public:
         output.close();
     }
 };
-
 }
-#endif //COMPILER_LOGGER_H
+
+#endif  // COMPILER_LOGGER_H
