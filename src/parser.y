@@ -7,6 +7,7 @@
 #include <vector>
 #include "Logger.h"
 #include "CodeBlock.h"
+#include "MemoryManager.h"
 
 int yylex();
 void yyerror(const char *s);
@@ -16,7 +17,8 @@ extern "C" FILE *yyin;
 int curr_line = 0;
 
 std::vector<std::string> decoded_values(4, "");
-auto logger = logging::Logger("logs.log");
+auto bison_logger = logging::Logger("bison_logs.log");
+MemoryManager manager;
 %}
 
 %define api.value.type {std::string}
@@ -94,7 +96,7 @@ commands:
 ;
 command:
     identifier ASSIGN expression SEMICOLON {
-
+        bison_logger.log($3);
     }
     | IF condition THEN commands ELSE commands ENDIF {
 
@@ -103,7 +105,7 @@ command:
 
     }
     | WHILE condition DO commands ENDWHILE {
-
+        //bison_logger.log($2);
     }
     | REPEAT commands UNTIL condition SEMICOLON {
 
@@ -166,54 +168,66 @@ args:
 ;
 expression:
     value {
-
+        decode_val($1, "");
+        int e = manager.add_expr_to_buffor(ExprOperatorType::_MUL, decoded_values[0], decoded_values[2], "", "");
+        $$ = std::to_string(e);
     }
     | value PLUS value {
-
+        decode_val($1, $3);
+        int e = manager.add_expr_to_buffor(ExprOperatorType::_PLUS, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
+        $$ = std::to_string(e);
     }
     | value MIN value {
-        
+        decode_val($1, $3);
+        int e = manager.add_expr_to_buffor(ExprOperatorType::_MIN, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
+        $$ = std::to_string(e);
     }
     | value MUL value {
-        
+        decode_val($1, $3);
+        int e = manager.add_expr_to_buffor(ExprOperatorType::_MUL, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
+        $$ = std::to_string(e);
     }
     | value DIV value {
-        
+        decode_val($1, $3);
+        int e = manager.add_expr_to_buffor(ExprOperatorType::_DIV, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
+        $$ = std::to_string(e);
     }
     | value MOD value {
-        
+        decode_val($1, $3);
+        int e = manager.add_expr_to_buffor(ExprOperatorType::_MOD, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
+        $$ = std::to_string(e);
     }
 ;
 condition:
     value EQ value {
         decode_val($1, $3);
-        CondBlock c(0, CondOperatorType::_EQ, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
-        logger.log(&c);
+        int c = manager.add_cond_block(CondOperatorType::_EQ, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
+        $$ = std::to_string(c);
     }
     | value NEQ value {
         decode_val($1, $3);
-        CondBlock c(0, CondOperatorType::_NEQ, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
-        logger.log(&c);
+        int c = manager.add_cond_block(CondOperatorType::_NEQ, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
+        $$ = std::to_string(c);
     }
     | value LMORE value {
         decode_val($1, $3);
-        CondBlock c(0, CondOperatorType::_LMORE, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
-        logger.log(&c);
+        int c = manager.add_cond_block(CondOperatorType::_LMORE, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
+        $$ = std::to_string(c);
     }
     | value LLESS value {
         decode_val($1, $3);
-        CondBlock c(0, CondOperatorType::_LLESS, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
-        logger.log(&c);
+        int c = manager.add_cond_block(CondOperatorType::_LLESS, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
+        $$ = std::to_string(c);
     }
     | value LMEQ value {
         decode_val($1, $3);
-        CondBlock c(0, CondOperatorType::_LMEQ, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
-        logger.log(&c);
+        int c = manager.add_cond_block(CondOperatorType::_LMEQ, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
+        $$ = std::to_string(c);
     }
     | value LLEQ value {
         decode_val($1, $3);
-        CondBlock c(0, CondOperatorType::_LLEQ, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
-        logger.log(&c);
+        int c = manager.add_cond_block(CondOperatorType::_LLEQ, decoded_values[0], decoded_values[2], decoded_values[1], decoded_values[3]);
+        $$ = std::to_string(c);
     }
 ;
 value:

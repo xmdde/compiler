@@ -36,6 +36,10 @@ public:
     Expression(ExprOperatorType op, std::string val1, std::string val2) : op(op), val1(val1), val2(val2) {}
     Expression(ExprOperatorType op, std::string val1, std::string val2, std::string idx1, std::string idx2)
         : op(op), val1(val1), val2(val2), val1_idx(idx1), val2_idx(idx2) {}
+
+    std::string get_vals_to_logger() {
+        return "Expression: val1 = " + val1 + ", idx1 = " + val1_idx + ", val2 = " + val2 + ", idx2 = " + val2_idx;
+    }
 };
 
 #endif  // COMPILER_INCLUDE_VALUE_H

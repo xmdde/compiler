@@ -12,7 +12,8 @@ public:
 
     CodeBlock(int id) : ID(id) {}
 
-    virtual void translate_to_asm() = 0;
+    //virtual void translate_to_asm() = 0;
+    virtual std::string get_vals_to_logger() = 0;
 };
 
 enum CondOperatorType {
@@ -33,11 +34,11 @@ public:
     CondBlock(int id, CondOperatorType type, std::string val1, std::string val2, std::string val1_idx, std::string val2_idx)
         : CodeBlock(id), op(type), val1(val1), val2(val2), val1_idx(val1_idx), val2_idx(val2_idx) {}
 
-    std::string get_vals_to_logger() {
+    std::string get_vals_to_logger() override {
         return "val1 = " + val1 + ", idx1 = " + val1_idx + ", val2 = " + val2 + ", idx2 = " + val2_idx;
     }
 
-    void translate_to_asm() override {
+    void translate_to_asm() {
     }
 };
 
@@ -50,7 +51,11 @@ public:
     AssignBlock(int id, std::string val, Expression expression) : CodeBlock(id), val(val), expr(expression) {}
     AssignBlock(int id, std::string val, std::string idx, Expression expression) : CodeBlock(id), val(val), val_idx(idx), expr(expression) {}
 
-    void translate_to_asm() override {
+    std::string get_vals_to_logger() override {
+        return "val = " + val + ", idx = " + val_idx + ", " + expr.get_vals_to_logger();
+    }
+
+    void translate_to_asm() {
     }
 };
 
@@ -59,9 +64,13 @@ class ProcedureCall : public CodeBlock {
     std::vector<std::string> params; //check default empty proc
 
 public:
-    ProcedureCall(int id, std::string name) : CodeBlock(id), procedure_name(name) {}
+    ProcedureCall(int id, std::string name, std::vector<std::string> params) : CodeBlock(id), procedure_name(name), params(params) {}
 
-    void translate_to_asm() override {
+    std::string get_vals_to_logger() override {
+        return "";
+    }
+
+    void translate_to_asm() {
     }
 };
 

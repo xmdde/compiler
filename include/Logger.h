@@ -30,6 +30,7 @@ public:
     }
 
     void log(AssignBlock* assignBlock) {
+        output << "CondBlock (ID: " << assignBlock->ID << ", " << assignBlock->get_vals_to_logger() << ")" << std::endl;
     }
 
     void close_logger() {
