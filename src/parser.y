@@ -96,7 +96,9 @@ commands:
 ;
 command:
     identifier ASSIGN expression SEMICOLON {
-        bison_logger.log($3);
+        decode_val($1, "");
+        int a = manager.add_assign_block(decoded_values[0], decoded_values[1]);
+        $$ = std::to_string(a); // config index
     }
     | IF condition THEN commands ELSE commands ENDIF {
 
@@ -105,7 +107,7 @@ command:
 
     }
     | WHILE condition DO commands ENDWHILE {
-        //bison_logger.log($2);
+
     }
     | REPEAT commands UNTIL condition SEMICOLON {
 
@@ -114,10 +116,14 @@ command:
 
     }
     | READ identifier SEMICOLON {
-
+        decode_val($2, "");
+        int k = manager.add_keyword_block(Keyword::_READ, decoded_values[0], decoded_values[2]);
+        $$ = std::to_string(k);
     }
     | WRITE value SEMICOLON {
-
+        decode_val($2, "");
+        int k = manager.add_keyword_block(Keyword::_WRITE, decoded_values[0], decoded_values[2]);
+        $$ = std::to_string(k);
     }
 ;
 proc_head:
@@ -232,7 +238,7 @@ condition:
 ;
 value:
     NUM {
-        // add num to consts
+        manager.add_const($1);
         $$ = $1;
     }
     | identifier {
@@ -244,7 +250,7 @@ identifier:
         $$ = $1;
     }
     | PIDENTIFIER LSQBR NUM RSQBR {
-        // add num to consts
+        manager.add_const($3);
         $$ = $1 + "[" + $3 + "]";
     }
     | PIDENTIFIER LSQBR PIDENTIFIER RSQBR {
@@ -281,7 +287,6 @@ void decode_val(std::string v1, std::string v2) {
 int handle(const char* input_file) {
     yyin = fopen(input_file, "r");
     int parsed = yyparse();
-
     return parsed;
 }
 

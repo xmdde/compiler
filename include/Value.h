@@ -18,6 +18,14 @@ public:
     Value(int id, std::string name, int size) : ID(id), name(name), size(size) {
         type = ValType::_ARR;
     }
+
+    std::string get_vals_to_logger() {
+        std::string data = "ID = " + std::to_string(ID) + ", name = " + name;
+        if (type == ValType::_ARR) {
+            data += ", ARR size =" + std::to_string(size);
+        }
+        return data;
+    }
 };
 
 enum ExprOperatorType {
@@ -33,7 +41,6 @@ class Expression {
 
 public:
     Expression(ExprOperatorType op, std::string val1) : op(op), val1(val1) {}
-    Expression(ExprOperatorType op, std::string val1, std::string val2) : op(op), val1(val1), val2(val2) {}
     Expression(ExprOperatorType op, std::string val1, std::string val2, std::string idx1, std::string idx2)
         : op(op), val1(val1), val2(val2), val1_idx(idx1), val2_idx(idx2) {}
 

@@ -12,7 +12,7 @@ public:
 
     CodeBlock(int id) : ID(id) {}
 
-    //virtual void translate_to_asm() = 0;
+    virtual void translate_to_asm() = 0;
     virtual std::string get_vals_to_logger() = 0;
 };
 
@@ -26,11 +26,8 @@ class CondBlock : public CodeBlock {
     std::string val2;
     std::string val1_idx = "";
     std::string val2_idx = "";
-    // TODO(): check if idx num (decide wheter its even important)
+    // TODO(): check if idx num (decide whether its even important)
 public:
-    CondBlock(int id, CondOperatorType type, std::string val1, std::string val2)
-        : CodeBlock(id), op(type), val1(val1), val2(val2) {}
-    
     CondBlock(int id, CondOperatorType type, std::string val1, std::string val2, std::string val1_idx, std::string val2_idx)
         : CodeBlock(id), op(type), val1(val1), val2(val2), val1_idx(val1_idx), val2_idx(val2_idx) {}
 
@@ -38,7 +35,7 @@ public:
         return "val1 = " + val1 + ", idx1 = " + val1_idx + ", val2 = " + val2 + ", idx2 = " + val2_idx;
     }
 
-    void translate_to_asm() {
+    void translate_to_asm() override {
     }
 };
 
@@ -55,7 +52,7 @@ public:
         return "val = " + val + ", idx = " + val_idx + ", " + expr.get_vals_to_logger();
     }
 
-    void translate_to_asm() {
+    void translate_to_asm() override {
     }
 };
 
@@ -70,10 +67,44 @@ public:
         return "";
     }
 
-    void translate_to_asm() {
+    void translate_to_asm() override {
     }
 };
 
-// class KeywordBlock : public CodeBlock {};
+enum Keyword {
+    _WRITE, _READ, _PROC_END, _EMPTY
+};
+
+class KeywordBlock : public CodeBlock {
+    Keyword type;
+    std::string val = "";
+    std::string val_idx = "";
+
+public:
+    KeywordBlock(int id, Keyword type) : CodeBlock(id), type(type) {}
+    KeywordBlock(int id, Keyword type, const std::string& val, const std::string& idx) : CodeBlock(id), type(type), val(val), val_idx(idx) {}
+
+    std::string get_vals_to_logger() override {
+        std::string log_info;
+        switch (type) {
+            case Keyword::_WRITE:
+                log_info = "_WRITE, val = " + val + ", idx = " + val_idx;
+            break;
+            case Keyword::_READ:
+                log_info = "_READ, val = " + val + ", idx = " + val_idx;
+            break;
+            case Keyword::_PROC_END:
+                log_info = "_PROC_END";
+            break;
+            case Keyword::_EMPTY:
+                log_info = "_EMPTY";
+            break;
+        }
+        return log_info;
+    }
+
+    void translate_to_asm() override {
+    }
+};
 
 #endif  // COMPILER_INCLUDE_CODEBLOCK_H
