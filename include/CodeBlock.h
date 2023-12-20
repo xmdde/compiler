@@ -6,14 +6,25 @@
 
 class CodeBlock {
 public:
+    int ID;
     int next_TRUE;
     int next_FALSE;
-    int ID;
 
     CodeBlock(int id) : ID(id) {}
-
     virtual void translate_to_asm() = 0;
     virtual std::string get_vals_to_logger() = 0;
+
+    virtual std::string get_nbhs_to_logger() {
+        return "In Block ID=" + std::to_string(ID) + " | next_TRUE ID = " + std::to_string(next_TRUE) + ", next_FALSE ID = " + std::to_string(next_FALSE);
+    }
+
+    virtual void set_next_true(int id) {
+        next_TRUE = id;
+    }
+
+    virtual void set_next_false(int id) {
+        next_FALSE = id;
+    }
 };
 
 enum CondOperatorType {
@@ -26,13 +37,13 @@ class CondBlock : public CodeBlock {
     std::string val2;
     std::string val1_idx = "";
     std::string val2_idx = "";
-    // TODO(): check if idx num (decide whether its even important)
+    // TODO(): check if idx num (decide if it's even important)
 public:
     CondBlock(int id, CondOperatorType type, std::string val1, std::string val2, std::string val1_idx, std::string val2_idx)
         : CodeBlock(id), op(type), val1(val1), val2(val2), val1_idx(val1_idx), val2_idx(val2_idx) {}
 
     std::string get_vals_to_logger() override {
-        return "val1 = " + val1 + ", idx1 = " + val1_idx + ", val2 = " + val2 + ", idx2 = " + val2_idx;
+        return "ID=" + std::to_string(ID) + ", val1 = " + val1 + ", idx1 = " + val1_idx + ", val2 = " + val2 + ", idx2 = " + val2_idx;
     }
 
     void translate_to_asm() override {
@@ -49,7 +60,7 @@ public:
     AssignBlock(int id, std::string val, std::string idx, Expression expression) : CodeBlock(id), val(val), val_idx(idx), expr(expression) {}
 
     std::string get_vals_to_logger() override {
-        return "val = " + val + ", idx = " + val_idx + ", " + expr.get_vals_to_logger();
+        return "ID=" + std::to_string(ID) + ", val = " + val + ", idx = " + val_idx + ", " + expr.get_vals_to_logger();
     }
 
     void translate_to_asm() override {
@@ -64,7 +75,10 @@ public:
     ProcedureCall(int id, std::string name, std::vector<std::string> params) : CodeBlock(id), procedure_name(name), params(params) {}
 
     std::string get_vals_to_logger() override {
-        return "";
+        std::string v = "ID=" + std::to_string(ID) + ", name = " + procedure_name + ", params: ";
+        for (auto p : params)
+            v += p + ", ";
+        return v;
     }
 
     void translate_to_asm() override {
@@ -85,19 +99,19 @@ public:
     KeywordBlock(int id, Keyword type, const std::string& val, const std::string& idx) : CodeBlock(id), type(type), val(val), val_idx(idx) {}
 
     std::string get_vals_to_logger() override {
-        std::string log_info;
+        std::string log_info = "ID=" + std::to_string(ID);
         switch (type) {
             case Keyword::_WRITE:
-                log_info = "_WRITE, val = " + val + ", idx = " + val_idx;
+                log_info += ", _WRITE, val = " + val + ", idx = " + val_idx;
             break;
             case Keyword::_READ:
-                log_info = "_READ, val = " + val + ", idx = " + val_idx;
+                log_info += ", _READ, val = " + val + ", idx = " + val_idx;
             break;
             case Keyword::_PROC_END:
-                log_info = "_PROC_END";
+                log_info += ", _PROC_END";
             break;
             case Keyword::_EMPTY:
-                log_info = "_EMPTY";
+                log_info += ", _EMPTY";
             break;
         }
         return log_info;

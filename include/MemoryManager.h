@@ -17,7 +17,7 @@ public:
     Configuration(int b, int e) : begin_id(b), end_id(e) {}
 
     std::string get_vals_to_logger() {
-        return "begin_id = " + std::to_string(begin_id) + ", end_id = " + std::to_string(end_id);
+        return "begin_id=" + std::to_string(begin_id) + ", end_id=" + std::to_string(end_id);
     }
 };
 
@@ -52,16 +52,20 @@ public:
     int add_assign_block(const std::string& val, const std::string& val_idx);
     int add_keyword_block(Keyword type);
     int add_keyword_block(Keyword type, const std::string& val, const std::string& val_idx);
+    int add_proc_call(const std::string& name, std::vector<std::string> args);
 
     // Create Expression and add it to the expr_buffor. Return its index.
     int add_expr_to_buffor(ExprOperatorType op, const std::string& val1, const std::string& val2, const std::string& idx1, const std::string& idx2);
-
     void add_const(const std::string& num);
 
     // Connect subgraphs based on given configs (1->2 true and false). Return new Configuration's index.
-    int connnect_blocks(const std::string& config1_idx, const std::string& config2_idx);
-    //int set_next_true(const std::string& config1_idx, const std::string& config2_idx);
-    //int set_next_false(const std::string& config1_idx, const std::string& config2_idx);
+    int connect_blocks(const std::string& config1_idx, const std::string& config2_idx);
+    int connect_if(const std::string& cond_config, const std::string& commands_config);
+    int connect_if_else(const std::string& cond_config, const std::string& commands_config, const std::string& else_config);
+    int connect_while(const std::string& cond_config, const std::string& commands_config);
+    int connect_repeat_until(const std::string& commands_config, const std::string& cond_config);
+
+    void export_ast();
 };
 
 #endif  // COMPILER_INCLUDE_MEMORYMANAGER_H

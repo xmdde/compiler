@@ -20,7 +20,7 @@ public:
     }
 
     std::string get_vals_to_logger() {
-        std::string data = "ID = " + std::to_string(ID) + ", name = " + name;
+        std::string data = "ID=" + std::to_string(ID) + ", name = " + name;
         if (type == ValType::_ARR) {
             data += ", ARR size =" + std::to_string(size);
         }
@@ -40,7 +40,6 @@ class Expression {
     std::string val2_idx = "";
 
 public:
-    Expression(ExprOperatorType op, std::string val1) : op(op), val1(val1) {}
     Expression(ExprOperatorType op, std::string val1, std::string val2, std::string idx1, std::string idx2)
         : op(op), val1(val1), val2(val2), val1_idx(idx1), val2_idx(idx2) {}
 

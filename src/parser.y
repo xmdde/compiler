@@ -17,6 +17,7 @@ extern "C" FILE *yyin;
 int curr_line = 0;
 
 std::vector<std::string> decoded_values(4, "");
+std::vector<std::string> args_buff;
 auto bison_logger = logging::Logger("bison_logs.log");
 MemoryManager manager;
 %}
@@ -88,32 +89,41 @@ main:
 ;
 commands:
     commands command {
-
+        //tmp
+        if ($1 == "" && $2 == "") {
+            $$ = "";
+        }
+        int c = manager.connect_blocks($1, $2);
+        $$ = std::to_string(c);
     }
     | command {
-
+        $$ = $1;
     }
 ;
 command:
     identifier ASSIGN expression SEMICOLON {
         decode_val($1, "");
         int a = manager.add_assign_block(decoded_values[0], decoded_values[1]);
-        $$ = std::to_string(a); // config index
+        $$ = std::to_string(a);  // config index
     }
     | IF condition THEN commands ELSE commands ENDIF {
-
+        int i = manager.connect_if_else($2, $4, $6);
+        $$ = std::to_string(i);
     }
     | IF condition THEN commands ENDIF {
-
+        int i = manager.connect_if($2, $4);
+        $$ = std::to_string(i);
     }
     | WHILE condition DO commands ENDWHILE {
-
+        int w = manager.connect_while($2, $4);
+        $$ = std::to_string(w);
     }
     | REPEAT commands UNTIL condition SEMICOLON {
-
+        int r = manager.connect_repeat_until($2, $4);
+        $$ = std::to_string(r);
     }
     | proc_call SEMICOLON {
-
+        $$ = $1;
     }
     | READ identifier SEMICOLON {
         decode_val($2, "");
@@ -133,7 +143,12 @@ proc_head:
 ;
 proc_call:
     PIDENTIFIER LBR args RBR {
-
+        bison_logger.log("args: ");
+        for (auto i : args_buff) {
+            bison_logger.log(i);
+        }
+        int p = manager.add_proc_call($1, args_buff);
+        $$ = std::to_string(p);
     }
 ;
 declarations:
@@ -166,10 +181,11 @@ args_decl:
 ;
 args:
     args COMMA PIDENTIFIER {
-
+        args_buff.push_back($3);
     }
     | PIDENTIFIER {
-
+        args_buff.clear();
+        args_buff.push_back($1);
     }
 ;
 expression:
@@ -287,9 +303,10 @@ void decode_val(std::string v1, std::string v2) {
 int handle(const char* input_file) {
     yyin = fopen(input_file, "r");
     int parsed = yyparse();
+    manager.export_ast();
     return parsed;
 }
 
 int main(int argc, const char** argv) {
-    return handle(argv[1]);    
+    return handle(argv[1]);
 }
