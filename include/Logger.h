@@ -25,14 +25,6 @@ public:
         output << msg << param << std::endl;
     }
 
-    void log(CondBlock* condBlock) {
-        output << "CondBlock (ID: " << condBlock->ID << ", " << condBlock->get_vals_to_logger() << ")" << std::endl;
-    }
-
-    void log(AssignBlock* assignBlock) {
-        output << "CondBlock (ID: " << assignBlock->ID << ", " << assignBlock->get_vals_to_logger() << ")" << std::endl;
-    }
-
     void close_logger() {
         for (auto it : log_list) {
             std::cout << it << std::endl;

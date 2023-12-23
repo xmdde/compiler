@@ -5,7 +5,7 @@ int MemoryManager::add_cond_block(CondOperatorType type, std::string val1, std::
     graph.push_back(std::make_shared<CondBlock>(id_counter, type, val1, val2, val1_idx, val2_idx));
     logger.log("Created CondBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
-    logger.log("Created Configuration (" + std::to_string(id_counter) + " " + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
+    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
     id_counter++;
     return configs.size() - 1;
 }
@@ -15,7 +15,7 @@ int MemoryManager::add_assign_block(const std::string& val, const std::string& v
     graph.push_back(std::make_shared<AssignBlock>(id_counter, val, val_idx, expr_buffor.back()));
     logger.log("Created AssignBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
-    logger.log("Created Configuration (" + std::to_string(id_counter) + " " + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
+    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
     id_counter++;
     return configs.size() - 1;
 }
@@ -25,7 +25,7 @@ int MemoryManager::add_keyword_block(Keyword type) {
     graph.push_back(std::make_shared<KeywordBlock>(id_counter, type));
     logger.log("Created KeywordBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
-    logger.log("Created Configuration (" + std::to_string(id_counter) + " " + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
+    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
     id_counter++;
     return configs.size() - 1;
 }
@@ -35,7 +35,7 @@ int MemoryManager::add_keyword_block(Keyword type, const std::string& val, const
     graph.push_back(std::make_shared<KeywordBlock>(id_counter, type, val, val_idx));
     logger.log("Created KeywordBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
-    logger.log("Created Configuration (" + std::to_string(id_counter) + " " + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
+    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
     id_counter++;
     return configs.size() - 1;
 }
@@ -44,7 +44,7 @@ int MemoryManager::add_proc_call(const std::string& name, std::vector<std::strin
     graph.push_back(std::make_shared<ProcedureCall>(id_counter, name, args));
     logger.log("Created ProcedureCall: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
-    logger.log("Created Configuration (" + std::to_string(id_counter) + " " + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
+    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
     id_counter++;
     return configs.size() - 1;
 }
@@ -54,6 +54,15 @@ int MemoryManager::add_expr_to_buffor(ExprOperatorType op, const std::string& va
     expr_buffor.push_back(Expression(op, val1, val2, idx1, idx2));
     logger.log("Created " + expr_buffor.back().get_vals_to_logger() + "| expr_buffor.size=" + std::to_string(expr_buffor.size()));
     return expr_buffor.size() - 1;
+}
+
+void MemoryManager::clear_args_decl_buffor() {
+    args_decl_buffor.clear();
+}
+
+void MemoryManager::add_val_to_buffor(ValType type, const std::string& name) {
+    args_decl_buffor.push_back(Value(type, name));
+    logger.log("|add_val_to_buffor| Created value template: " + args_decl_buffor.back().get_vals_to_logger() + "| args_decl_buffor.size=" + std::to_string(args_decl_buffor.size()));
 }
 
 void MemoryManager::add_const(const std::string& num) {
@@ -119,7 +128,8 @@ int MemoryManager::connect_if_else(const std::string& cond_config, const std::st
     int cond_idx = std::stoi(cond_config);
     int commands_idx = std::stoi(commands_config);
     int else_idx = std::stoi(else_config);
-    logger.log("condition: " + configs[cond_idx].get_vals_to_logger() + ", commands: " + configs[commands_idx].get_vals_to_logger() + ", else: " + configs[else_idx].get_vals_to_logger());
+    logger.log("condition: " + configs[cond_idx].get_vals_to_logger() + ", commands: " + configs[commands_idx].get_vals_to_logger() +
+               ", else: " + configs[else_idx].get_vals_to_logger());
 
     int endif_config = add_keyword_block(Keyword::_EMPTY);
     int endif_idx = configs[endif_config].begin_id;
@@ -203,11 +213,32 @@ int MemoryManager::connect_repeat_until(const std::string& commands_config, cons
     return configs.size() - 1;
 }
 
+int MemoryManager::create_procedure() {
+    logger.log("|create_procedure| Creating an empty procedure.");
+    procedures.push_back(Procedure());
+    logger.log("procedures.size=" + std::to_string(procedures.size()));
+    return procedures.size() - 1;
+}
+
+void MemoryManager::add_val_to_procedure(const std::string& proc_id, ValType type, const std::string& name, const std::string& size) {
+    logger.log("|add_val_to_procedure| " + proc_id);
+    int idx = std::stoi(proc_id);
+
+    if (type == ValType::_ARR) {
+        procedures[idx].add_local_arr(memory_counter, name, std::stoi(size));
+        memory_counter += std::stoi(size);
+    } else {
+        procedures[idx].add_local_val(memory_counter, name);
+        memory_counter++;
+    }
+}
+
 void MemoryManager::export_ast() {
     for (auto block : graph) {
-        std::cout << block->ID << " " << block->next_TRUE << std::endl;
-        if (block->next_FALSE != block->next_TRUE) {
-            std::cout << block->ID << " " << block->next_FALSE << std::endl;
+        if (block->next_TRUE != -1) {
+            std::cout << block->ID << " " << block->next_TRUE << std::endl;
+            if (block->next_FALSE != block->next_TRUE)
+                std::cout << block->ID << " " << block->next_FALSE << std::endl;
         }
     }
 }

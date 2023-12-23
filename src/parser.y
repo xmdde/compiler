@@ -15,6 +15,7 @@ void decode_val(std::string v1, std::string v2);
 
 extern "C" FILE *yyin;
 int curr_line = 0;
+//std::string procedure_name;
 
 std::vector<std::string> decoded_values(4, "");
 std::vector<std::string> args_buff;
@@ -72,19 +73,24 @@ program_all:
 ;
 procedures:
     procedures PROCEDURE proc_head IS declarations IN commands END {
-
+        bison_logger.log("procedures");
+        bison_logger.log($7);
     }
-    | procedures PROCEDURE proc_head IS IN commands END {
-
+    | procedures PROCEDURE proc_head IS IN commands END { //tworz procedure
+        bison_logger.log("procedures");
+        bison_logger.log($6);
+        // jako head ustawiamy begin_id w commands config
     }
     | {}
 ;
 main:
     PROGRAM IS declarations IN commands END {
-
+        bison_logger.log("main");
+        bison_logger.log($5);
     }
-    | PROGRAM IS IN commands END {
-
+    | PROGRAM IS IN commands END { //tworz procedure main
+        bison_logger.log("main");
+        bison_logger.log($4);
     }
 ;
 commands:
@@ -136,47 +142,51 @@ command:
         $$ = std::to_string(k);
     }
 ;
-proc_head:
+proc_head: //nazwe w buff
     PIDENTIFIER LBR args_decl RBR {
-
+        $$ = $1;
     }
 ;
 proc_call:
     PIDENTIFIER LBR args RBR {
-        bison_logger.log("args: ");
-        for (auto i : args_buff) {
-            bison_logger.log(i);
-        }
         int p = manager.add_proc_call($1, args_buff);
         $$ = std::to_string(p);
     }
 ;
-declarations:
+declarations: //tworz proc
     declarations COMMA PIDENTIFIER {
-
+        manager.add_val_to_procedure($1, ValType::_ID, $3, "");
+        $$ = $1;
     }
     | declarations COMMA PIDENTIFIER LSQBR NUM RSQBR {
-
+        manager.add_val_to_procedure($1, ValType::_ARR, $3, $5);
+        $$ = $1;
     }
     | PIDENTIFIER {
-
+        int p = manager.create_procedure();
+        manager.add_val_to_procedure(std::to_string(p), ValType::_ID, $1, "");
+        $$ = std::to_string(p);
     }
     | PIDENTIFIER LSQBR NUM RSQBR {
-
+        int p = manager.create_procedure();
+        manager.add_val_to_procedure(std::to_string(p), ValType::_ARR, $1, $3);
+        $$ = std::to_string(p);
     }
 ;
-args_decl:
+args_decl: //niech to w buffor leci (templates)
     args_decl COMMA PIDENTIFIER {
-
+        manager.add_val_to_buffor(ValType::_ID, $3);
     }
     | args_decl COMMA T PIDENTIFIER {
-
+        manager.add_val_to_buffor(ValType::_ARR, $4);
     }
     | PIDENTIFIER {
-
+        manager.clear_args_decl_buffor();
+        manager.add_val_to_buffor(ValType::_ID, $1);
     }
     | T PIDENTIFIER {
-
+        manager.clear_args_decl_buffor();
+        manager.add_val_to_buffor(ValType::_ARR, $2);
     }
 ;
 args:

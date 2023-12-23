@@ -7,10 +7,11 @@
 class CodeBlock {
 public:
     int ID;
-    int next_TRUE;
-    int next_FALSE;
+    int next_TRUE = -1;
+    int next_FALSE = -1;
 
     CodeBlock(int id) : ID(id) {}
+
     virtual void translate_to_asm() = 0;
     virtual std::string get_vals_to_logger() = 0;
 

@@ -2,6 +2,7 @@
 #define COMPILER_INCLUDE_MEMORYMANAGER_H
 
 #include "CodeBlock.h"
+#include "Procedure.h"
 #include "Value.h"
 #include "Logger.h"
 #include <stack>
@@ -24,22 +25,24 @@ public:
 class MemoryManager {
     logging::Logger logger = logging::Logger("logs.log");
 
-    //registers
+    int memory_counter = 0; //values IDs
+    int curr_head = 0; //zmien przy end
+    //registers?
     std::vector<std::shared_ptr<CodeBlock>> graph;
     std::vector<Value> memory;
     std::vector<Value> global_consts;
-    //procedures std::vector
+    std::vector<Procedure> procedures;
     std::map<std::string, int> consts_map;
     //map for var in procedure
+    std::vector<Expression> expr_buffor;
+    std::vector<Value> args_decl_buffor;
 
 public:
     int id_counter = 0;
-    int memory_counter = 0; //values IDs
     std::stack<std::string> current_procedure; //push what and when
     std::vector<Configuration> configs;
-    std::vector<Expression> expr_buffor;
 
-    MemoryManager() : graph(), memory(), global_consts(), consts_map() {
+    MemoryManager() : graph(), memory(), global_consts(), consts_map(), args_decl_buffor() {
         current_procedure = std::stack<std::string>();
         configs = std::vector<Configuration>();
         expr_buffor = std::vector<Expression>();
@@ -56,6 +59,8 @@ public:
 
     // Create Expression and add it to the expr_buffor. Return its index.
     int add_expr_to_buffor(ExprOperatorType op, const std::string& val1, const std::string& val2, const std::string& idx1, const std::string& idx2);
+    void add_val_to_buffor(ValType type, const std::string& name);
+    void clear_args_decl_buffor();
     void add_const(const std::string& num);
 
     // Connect subgraphs based on given configs (1->2 true and false). Return new Configuration's index.
@@ -65,6 +70,8 @@ public:
     int connect_while(const std::string& cond_config, const std::string& commands_config);
     int connect_repeat_until(const std::string& commands_config, const std::string& cond_config);
 
+    int create_procedure();
+    void add_val_to_procedure(const std::string& proc_id, ValType type, const std::string& name, const std::string& size);
     void export_ast();
 };
 
