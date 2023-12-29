@@ -10,7 +10,7 @@ enum ValType {
 class Value {
     std::string name;
     ValType type;
-    int ID = -1;
+    int ID = -1;  //aka memory cell
     int size = 0;
 
 public:
@@ -18,7 +18,7 @@ public:
     Value(int id, const std::string& name, int size) : ID(id), name(name), size(size) {
         type = ValType::_ARR;
     }
-    Value(ValType type, const std::string& name) : type(type), name(name) {} //for procedures params
+    Value(ValType type, const std::string& name) : type(type), name(name) {}  // for procedures params
 
     std::string get_vals_to_logger() {
         std::string data = "ID=" + std::to_string(ID) + ", name = " + name;
@@ -39,6 +39,8 @@ class Expression {
     std::string val2 = "";
     std::string val1_idx = "";
     std::string val2_idx = "";
+    bool if_idx1_num;
+    bool if_idx2_num;
 
 public:
     Expression(ExprOperatorType op, std::string val1, std::string val2, std::string idx1, std::string idx2)

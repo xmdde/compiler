@@ -70,7 +70,7 @@ void MemoryManager::add_const(const std::string& num) {
         global_consts.push_back(Value(memory_counter, ValType::_NUM, num));
         logger.log("|add_consts| Created NUM Value " + global_consts.back().get_vals_to_logger() + "| global_consts.size=" + std::to_string(global_consts.size()));
         consts_map[num] = memory_counter;
-        logger.log("Added (" + num + "," + std::to_string(memory_counter)+") to the consts map.");
+        logger.log("Added (" + num + "," + std::to_string(memory_counter) + ") to the consts map.");
         memory_counter++;
     } else {
         logger.log("|add_consts| NUM Value " + num + " is already in the map.");
@@ -221,7 +221,7 @@ int MemoryManager::create_procedure() {
 }
 
 void MemoryManager::add_val_to_procedure(const std::string& proc_id, ValType type, const std::string& name, const std::string& size) {
-    logger.log("|add_val_to_procedure| " + proc_id);
+    logger.log("|add_val_to_procedure| " + proc_id + ", " + name);
     int idx = std::stoi(proc_id);
 
     if (type == ValType::_ARR) {
@@ -230,6 +230,35 @@ void MemoryManager::add_val_to_procedure(const std::string& proc_id, ValType typ
     } else {
         procedures[idx].add_local_val(memory_counter, name);
         memory_counter++;
+    }
+}
+
+void MemoryManager::set_procedure_name(const std::string& proc_id, const std::string& name) {
+    logger.log("|set_procedure_name| " + proc_id + ", " + name);
+    int idx = std::stoi(proc_id);
+    procedures[idx].set_name(name);
+    procedures[idx].add_params_templates(args_decl_buffor);
+    clear_args_decl_buffor();
+}
+
+void MemoryManager::set_procedure_head(const std::string& proc_id, const std::string& conf) {
+    logger.log("|set_procedure_head| " + proc_id + ", Configuration: " + conf);
+    int idx = std::stoi(proc_id);
+    int h = configs[std::stoi(conf)].begin_id;
+    procedures[idx].set_head(h);
+}
+
+int MemoryManager::get_val_id(const std::string& name, ValType type, const int proc_id) {
+    return procedures[proc_id].get_val_id(name, type);
+}
+
+int MemoryManager::get_const_id(const std::string& num) {
+    return consts_map.find(num)->second;
+}
+
+void MemoryManager::log_procedures_info() {
+    for (auto p : procedures) {
+        p.log_info();
     }
 }
 
@@ -242,3 +271,7 @@ void MemoryManager::export_ast() {
         }
     }
 }
+
+/*---------------------------------------*/
+
+//void MemoryManager::

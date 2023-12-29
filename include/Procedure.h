@@ -1,9 +1,10 @@
 #ifndef COMPILER_INCLUDE_PROCEDURE_H
 #define COMPILER_INCLUDE_PROCEDURE_H
 
-#include "Value.h"
 #include <string>
 #include <map>
+
+#include "Value.h"
 
 class Procedure {
     int head_id;
@@ -26,9 +27,11 @@ public:
 
     void add_local_val(int id, const std::string& name);
     void add_local_arr(int id, const std::string& name, int size);
-    //void add_param_template();
+    void add_params_templates(std::vector<Value> p);
+    // void fill_in_params_info(); tutaj lapanie bledow xd + add to map
+    int get_val_id(const std::string& name, ValType type);
+
     void log_info();
-    //fun: find vals id by type and name
 };
 
 #endif  // COMPILER_INCLUDE_PROCEDURE_H

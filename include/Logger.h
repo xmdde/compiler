@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+
 #include "CodeBlock.h"
 
 namespace logging {
