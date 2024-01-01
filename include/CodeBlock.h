@@ -2,7 +2,9 @@
 #define COMPILER_INCLUDE_CODEBLOCK_H
 
 #include <string>
+#include <memory>
 
+#include "AsmCode.h"
 #include "Value.h"
 
 class CodeBlock {
@@ -10,6 +12,8 @@ public:
     int ID;
     int next_TRUE = -1;
     int next_FALSE = -1;
+    //std::shared_ptr<AsmCode> asm_code;
+    AsmCode asm_code;
 
     CodeBlock(int id) : ID(id) {}
 

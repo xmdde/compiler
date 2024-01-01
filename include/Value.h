@@ -15,9 +15,11 @@ class Value {
 
 public:
     Value(int id, ValType type, const std::string& name) : ID(id), type(type), name(name) {}
+
     Value(int id, const std::string& name, int size) : ID(id), name(name), size(size) {
         type = ValType::_ARR;
     }
+
     Value(ValType type, const std::string& name) : type(type), name(name) {}  // for procedures params
 
     std::string get_vals_to_logger() {

@@ -1,7 +1,8 @@
 #include "MemoryManager.h"
+#include "AsmCode.h"
 
 // Creates CondBlock and adds it to the graph. Returns its Configuration id (index in configs).
-int MemoryManager::add_cond_block(CondOperatorType type, std::string val1, std::string val2, std::string val1_idx, std::string val2_idx) {
+int MemoryManager::add_cond_block(CondOperatorType type, const std::string& val1, const std::string& val2, const std::string& val1_idx, const std::string& val2_idx) {
     graph.push_back(std::make_shared<CondBlock>(id_counter, type, val1, val2, val1_idx, val2_idx));
     logger.log("Created CondBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
