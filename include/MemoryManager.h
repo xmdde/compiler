@@ -30,7 +30,7 @@ class MemoryManager {
 
     int memory_counter = 0; // values IDs
     // registers?
-    std::vector<std::shared_ptr<CodeBlock>> graph;
+    std::vector<std::shared_ptr<CodeBlock> > graph;
 
     std::vector<Value> memory;
     std::vector<Value> global_consts;
@@ -77,6 +77,8 @@ public:
     void set_procedures_in_graph();
     void log_procedures_info();
     void export_ast();
+
+    void test();
 };
 
 #endif  // COMPILER_INCLUDE_MEMORYMANAGER_H

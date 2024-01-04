@@ -5,8 +5,6 @@
 #include <iostream>
 #include <vector>
 
-#include "CodeBlock.h"
-
 namespace logging {
 
 class Logger {

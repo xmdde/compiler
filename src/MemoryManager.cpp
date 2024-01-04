@@ -1,4 +1,4 @@
-#include "MemoryManager.h"
+#include <MemoryManager.h>
 #include "AsmCode.h"
 
 // Creates CondBlock and adds it to the graph. Returns its Configuration id (index in configs).
@@ -275,4 +275,9 @@ void MemoryManager::export_ast() {
 
 /*---------------------------------------*/
 
-//void MemoryManager::
+void MemoryManager::test() {
+    //asm_code.create_const_in_reg(7, "a");
+    //asm_code.store_ra_in_p(20);
+    asm_code.asm_multiply();
+    asm_code.print_asm_code();
+}

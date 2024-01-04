@@ -70,6 +70,7 @@ MemoryManager manager;
 program_all:
     procedures main {
         manager.log_procedures_info();
+        manager.test();
     }
 ;
 procedures:
@@ -140,7 +141,7 @@ command:
         $$ = std::to_string(k);
     }
 ;
-proc_head: //nazwe w buff
+proc_head:
     PIDENTIFIER LBR args_decl RBR {
         $$ = $1;
     }
@@ -179,11 +180,9 @@ args_decl:
         manager.add_val_to_buffor(ValType::_ARR, $4);
     }
     | PIDENTIFIER {
-        //manager.clear_args_decl_buffor();
         manager.add_val_to_buffor(ValType::_ID, $1);
     }
     | T PIDENTIFIER {
-        //manager.clear_args_decl_buffor();
         manager.add_val_to_buffor(ValType::_ARR, $2);
     }
 ;
@@ -311,7 +310,7 @@ void decode_val(std::string v1, std::string v2) {
 int handle(const char* input_file) {
     yyin = fopen(input_file, "r");
     int parsed = yyparse();
-    manager.export_ast();
+    //manager.export_ast();
     return parsed;
 }
 

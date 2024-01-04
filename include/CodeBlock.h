@@ -12,8 +12,8 @@ public:
     int ID;
     int next_TRUE = -1;
     int next_FALSE = -1;
-    //std::shared_ptr<AsmCode> asm_code;
-    AsmCode asm_code;
+    AsmCode* asm_code;
+    int first_instruction = -1;
 
     CodeBlock(int id) : ID(id) {}
 
