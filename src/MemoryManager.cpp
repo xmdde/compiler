@@ -3,7 +3,7 @@
 
 // Creates CondBlock and adds it to the graph. Returns its Configuration id (index in configs).
 int MemoryManager::add_cond_block(CondOperatorType type, const std::string& val1, const std::string& val2, const std::string& val1_idx, const std::string& val2_idx) {
-    graph.push_back(std::make_shared<CondBlock>(id_counter, type, val1, val2, val1_idx, val2_idx));
+    graph.push_back(std::make_shared<CondBlock>(id_counter, type, val1, val2, val1_idx, val2_idx, &asm_code));
     logger.log("Created CondBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
     logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
@@ -13,7 +13,7 @@ int MemoryManager::add_cond_block(CondOperatorType type, const std::string& val1
 
 // Creates AssignBlock and adds it to the graph. Returns its index in configs.
 int MemoryManager::add_assign_block(const std::string& val, const std::string& val_idx) {
-    graph.push_back(std::make_shared<AssignBlock>(id_counter, val, val_idx, expr_buffor.back()));
+    graph.push_back(std::make_shared<AssignBlock>(id_counter, val, val_idx, expr_buffor.back(), &asm_code));
     logger.log("Created AssignBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
     logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
@@ -23,7 +23,7 @@ int MemoryManager::add_assign_block(const std::string& val, const std::string& v
 
 // Creates empty/proc_end block and adds it to the graph. Returns its index in configs.
 int MemoryManager::add_keyword_block(Keyword type) {
-    graph.push_back(std::make_shared<KeywordBlock>(id_counter, type));
+    graph.push_back(std::make_shared<KeywordBlock>(id_counter, type, &asm_code));
     logger.log("Created KeywordBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
     logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
@@ -33,7 +33,7 @@ int MemoryManager::add_keyword_block(Keyword type) {
 
 // Creates WRITE/READ block and adds it to the graph. Returns its index in configs.
 int MemoryManager::add_keyword_block(Keyword type, const std::string& val, const std::string& val_idx) {
-    graph.push_back(std::make_shared<KeywordBlock>(id_counter, type, val, val_idx));
+    graph.push_back(std::make_shared<KeywordBlock>(id_counter, type, val, val_idx, &asm_code));
     logger.log("Created KeywordBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
     logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
@@ -42,7 +42,7 @@ int MemoryManager::add_keyword_block(Keyword type, const std::string& val, const
 }
 
 int MemoryManager::add_proc_call(const std::string& name, std::vector<std::string> args) {
-    graph.push_back(std::make_shared<ProcedureCall>(id_counter, name, args));
+    graph.push_back(std::make_shared<ProcedureCall>(id_counter, name, args, &asm_code));
     logger.log("Created ProcedureCall: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
     logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
@@ -257,6 +257,24 @@ int MemoryManager::get_const_id(const std::string& num) {
     return consts_map.find(num)->second;
 }
 
+void MemoryManager::set_procedures_in_graph() {
+    int curr = 0;
+    int i = 0;
+    while (curr < procedures.size() - 1) {
+        while (i < procedures[curr+1].get_head()) {
+            graph[i]->procedure_num = curr;
+            i++;
+        }
+        curr++;
+    }
+    while (i < graph.size()) {
+        graph[i]->procedure_num = curr;
+        i++;
+    }
+
+    log_procedures_info();
+}
+
 void MemoryManager::log_procedures_info() {
     for (auto p : procedures) {
         p.log_info();
@@ -278,6 +296,8 @@ void MemoryManager::export_ast() {
 void MemoryManager::test() {
     //asm_code.create_const_in_reg(7, "a");
     //asm_code.store_ra_in_p(20);
-    asm_code.asm_multiply();
+    //asm_code.asm_multiply();
+    for (auto g : graph)
+        g->translate_to_asm();
     asm_code.print_asm_code();
 }

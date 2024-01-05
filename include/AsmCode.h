@@ -29,8 +29,9 @@ class AsmCode {
     logging::Logger logger = logging::Logger("asm_logs.log");
 
     std::vector<AsmInstruction> asm_instructions;
-    int ins_ptr = 0;
 public:
+    int ins_ptr = 0;
+
     AsmCode() : asm_instructions() {}
 
     void add(AsmInstruction instruction) {

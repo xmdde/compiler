@@ -45,7 +45,7 @@ public:
     int current_procedure;
     std::vector<Configuration> configs;
 
-    MemoryManager() : graph(), memory(), global_consts(), consts_map(), args_decl_buffor() {
+    MemoryManager() : graph(), memory(), global_consts(), consts_map(), args_decl_buffor(), asm_code() {
         configs = std::vector<Configuration>();
         expr_buffor = std::vector<Expression>();
         logger.log("Created MemoryManager | graph.size=" + std::to_string(graph.size()));

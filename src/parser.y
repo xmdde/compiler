@@ -69,7 +69,7 @@ MemoryManager manager;
 
 program_all:
     procedures main {
-        manager.log_procedures_info();
+        manager.set_procedures_in_graph();
         manager.test();
     }
 ;

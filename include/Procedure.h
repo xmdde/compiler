@@ -21,6 +21,10 @@ public:
         head_id = id;
     }
 
+    int get_head() {
+        return head_id;
+    }
+
     void set_name(const std::string& p_name) {
         name = p_name;
     }
