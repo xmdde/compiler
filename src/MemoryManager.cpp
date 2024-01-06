@@ -1,5 +1,18 @@
-#include <MemoryManager.h>
+#include "MemoryManager.h"
 #include "AsmCode.h"
+
+bool is_num(const std::string& val) {
+    try {
+        //size_t pos;
+        int value = std::stoi(val);
+        //return pos == str.length();
+        return true;
+    } catch (const std::invalid_argument& e) {
+        return false;
+    } catch (const std::out_of_range& e) {
+        return false;
+    }
+}
 
 // Creates CondBlock and adds it to the graph. Returns its Configuration id (index in configs).
 int MemoryManager::add_cond_block(CondOperatorType type, const std::string& val1, const std::string& val2, const std::string& val1_idx, const std::string& val2_idx) {
@@ -293,11 +306,66 @@ void MemoryManager::export_ast() {
 
 /*---------------------------------------*/
 
+void MemoryManager::initialize_all_consts() {
+    for (auto n : global_consts) {
+        asm_code.create_const_in_reg(std::stoi(n.get_name()), "a");
+        asm_code.store_ra_in_p(n.get_id());
+    }
+}
+
+void MemoryManager::translate_block(std::shared_ptr<CodeBlock> block) {
+    std::string bt = block->block_type;
+    if (bt == "KeywordBlock") {
+        translate_keyword_block(block);
+    } else if (bt == "AssignBlock") {
+    
+    } else if (bt == "CondBlock") {
+
+    } else {
+
+    }
+}
+
+void MemoryManager::translate_keyword_block(std::shared_ptr<CodeBlock> block) {
+    const std::string val = block->get_val();
+    const std::string val_idx = block->get_val_idx();
+    Keyword key = block->get_keyword();
+
+    if (key == Keyword::_READ) {
+        block->first_instruction_k = asm_code.get_k();
+        if (val_idx == "") {
+            asm_code.create_const_in_reg(get_val_id(val, ValType::_ID, block->procedure_num), "b");
+            asm_code.add("READ", "", "# read " + val);
+            asm_code.add("STORE", "b");
+        } else {
+            int idx_id = is_num(val_idx) ? get_const_id(val_idx) : get_val_id(val_idx, ValType::_ID, block->procedure_num);
+            asm_code.place_id_in_ra(get_val_id(val, ValType::_ARR, block->procedure_num), idx_id);
+            asm_code.add("PUT", "b");
+            asm_code.add("READ", "", "# read " + val + "[" + val_idx + "]");
+            asm_code.add("STORE", "b");
+        }
+    } else if (key == Keyword::_WRITE) {
+        block->first_instruction_k = asm_code.get_k();
+        if (val_idx == "") {
+            int idx_id = is_num(val) ? get_const_id(val) : get_val_id(val, ValType::_ID, block->procedure_num);
+            asm_code.create_const_in_reg(idx_id, "b");
+            asm_code.add("LOAD", "b");
+            asm_code.add("WRITE", "");
+        } else {
+            int idx_id = is_num(val_idx) ? get_const_id(val_idx) : get_val_id(val_idx, ValType::_ID, block->procedure_num);
+            asm_code.place_id_in_ra(get_val_id(val, ValType::_ARR, block->procedure_num), idx_id);
+            asm_code.add("LOAD", "a");
+            asm_code.add("WRITE", "");
+        }
+    }
+}
+
+/*---------------------------------------*/
+
 void MemoryManager::test() {
-    //asm_code.create_const_in_reg(7, "a");
-    //asm_code.store_ra_in_p(20);
     //asm_code.asm_multiply();
+    initialize_all_consts();
     for (auto g : graph)
-        g->translate_to_asm();
+        translate_block(g);
     asm_code.print_asm_code();
 }

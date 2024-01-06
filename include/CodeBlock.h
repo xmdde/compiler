@@ -7,21 +7,24 @@
 #include "AsmCode.h"
 #include "Value.h"
 
+enum Keyword {
+    _WRITE, _READ, _EMPTY
+};
+
 class CodeBlock {
 public:
     int ID;
     int next_TRUE = -1;
     int next_FALSE = -1;
     AsmCode* asm_code;
-
     int first_instruction_k = -1;
     int procedure_num = -1;
+    std::string block_type;
 
     CodeBlock(int id, AsmCode* code) : ID(id) {
         asm_code = code;
     }
 
-    virtual void translate_to_asm() = 0;
     virtual std::string get_vals_to_logger() = 0;
 
     virtual std::string get_nbhs_to_logger() {
@@ -34,6 +37,26 @@ public:
 
     virtual void set_next_false(int id) {
         next_FALSE = id;
+    }
+
+    virtual std::string get_val() {
+        return "";
+    }
+
+    virtual std::string get_val_idx() {
+        return "";
+    }
+
+    virtual std::string get_val2() {
+        return "";
+    }
+
+    virtual std::string get_val2_idx() {
+        return "";
+    }
+
+    virtual Keyword get_keyword() {
+        return Keyword::_EMPTY;
     }
 };
 
@@ -50,13 +73,12 @@ class CondBlock : public CodeBlock {
     // TODO(): check if idx num (decide if it's even important)
 public:
     CondBlock(int id, CondOperatorType type, std::string val1, std::string val2, std::string val1_idx, std::string val2_idx, AsmCode* code)
-        : CodeBlock(id, code), op(type), val1(val1), val2(val2), val1_idx(val1_idx), val2_idx(val2_idx) {}
+        : CodeBlock(id, code), op(type), val1(val1), val2(val2), val1_idx(val1_idx), val2_idx(val2_idx) {
+        block_type = "CondBlock";
+    }
 
     std::string get_vals_to_logger() override {
         return "ID=" + std::to_string(ID) + ", val1 = " + val1 + ", idx1 = " + val1_idx + ", val2 = " + val2 + ", idx2 = " + val2_idx;
-    }
-
-    void translate_to_asm() override {
     }
 };
 
@@ -66,14 +88,24 @@ class AssignBlock : public CodeBlock {
     Expression expr;
 
 public:
-    AssignBlock(int id, std::string val, Expression expression, AsmCode* code) : CodeBlock(id, code), val(val), expr(expression) {}
-    AssignBlock(int id, std::string val, std::string idx, Expression expression, AsmCode* code) : CodeBlock(id, code), val(val), val_idx(idx), expr(expression) {}
+    AssignBlock(int id, std::string val, Expression expression, AsmCode* code) : CodeBlock(id, code), val(val), expr(expression) {
+        block_type = "AssignBlock";
+    }
+
+    AssignBlock(int id, std::string val, std::string idx, Expression expression, AsmCode* code) : CodeBlock(id, code), val(val), val_idx(idx), expr(expression) {
+        block_type = "AssignBlock";
+    }
 
     std::string get_vals_to_logger() override {
         return "ID=" + std::to_string(ID) + ", val = " + val + ", idx = " + val_idx + ", " + expr.get_vals_to_logger();
     }
 
-    void translate_to_asm() override {
+    virtual std::string get_val() override {
+        return val;
+    }
+
+    virtual std::string get_val_idx() override {
+        return val_idx;
     }
 };
 
@@ -82,7 +114,9 @@ class ProcedureCall : public CodeBlock {
     std::vector<std::string> params; //check default empty proc
 
 public:
-    ProcedureCall(int id, std::string name, std::vector<std::string> params, AsmCode* code) : CodeBlock(id, code), procedure_name(name), params(params) {}
+    ProcedureCall(int id, std::string name, std::vector<std::string> params, AsmCode* code) : CodeBlock(id, code), procedure_name(name), params(params) {
+        block_type = "ProcedureCall";
+    }
 
     std::string get_vals_to_logger() override {
         std::string v = "ID=" + std::to_string(ID) + ", name = " + procedure_name + ", params: ";
@@ -90,13 +124,6 @@ public:
             v += p + ", ";
         return v;
     }
-
-    void translate_to_asm() override {
-    }
-};
-
-enum Keyword {
-    _WRITE, _READ, _EMPTY
 };
 
 class KeywordBlock : public CodeBlock {
@@ -105,8 +132,13 @@ class KeywordBlock : public CodeBlock {
     std::string val_idx = "";
 
 public:
-    KeywordBlock(int id, Keyword type, AsmCode* code) : CodeBlock(id, code), type(type) {}
-    KeywordBlock(int id, Keyword type, const std::string& val, const std::string& idx, AsmCode* code) : CodeBlock(id, code), type(type), val(val), val_idx(idx) {}
+    KeywordBlock(int id, Keyword type, AsmCode* code) : CodeBlock(id, code), type(type) {
+        block_type = "KeywordBlock";
+    }
+
+    KeywordBlock(int id, Keyword type, const std::string& val, const std::string& idx, AsmCode* code) : CodeBlock(id, code), type(type), val(val), val_idx(idx) {
+        block_type = "KeywordBlock";
+    }
 
     std::string get_vals_to_logger() override {
         std::string log_info = "ID=" + std::to_string(ID);
@@ -124,7 +156,16 @@ public:
         return log_info;
     }
 
-    void translate_to_asm() override {
+    virtual std::string get_val() override {
+        return val;
+    }
+
+    virtual std::string get_val_idx() override {
+        return val_idx;
+    }
+
+    virtual Keyword get_keyword() override {
+        return type;
     }
 };
 

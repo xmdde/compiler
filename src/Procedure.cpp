@@ -39,11 +39,12 @@ void Procedure::add_params_templates(std::vector<Value> p) {
 }
 
 int Procedure::get_val_id(const std::string& name, ValType type) {
+    //p_logger.log("|get_val_id| " + procedure_name + " | get " + name);
     return map.find(std::make_pair(type, name))->second;
 }
 
 void Procedure::log_info() {
-    p_logger.log("---------------------\nProcedure: name = " + name + ", head_id=" + std::to_string(head_id));
+    p_logger.log("---------------------\nProcedure: name = " + procedure_name + ", head_id=" + std::to_string(head_id));
     std::string p = "";
     std::string v = "";
     for (auto val : local_vals) {

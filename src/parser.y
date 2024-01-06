@@ -90,7 +90,7 @@ main:
         manager.set_procedure_name($3, "main");
         manager.set_procedure_head($3, $5);
     }
-    | PROGRAM IS IN commands END { // tworz procedure main
+    | PROGRAM IS IN commands END {  // tworz procedure main
         std::string p = std::to_string(manager.create_procedure());
         manager.set_procedure_name(p, "main");
         manager.set_procedure_head(p, $4);
@@ -132,12 +132,12 @@ command:
     }
     | READ identifier SEMICOLON {
         decode_val($2, "");
-        int k = manager.add_keyword_block(Keyword::_READ, decoded_values[0], decoded_values[2]);
+        int k = manager.add_keyword_block(Keyword::_READ, decoded_values[0], decoded_values[1]);
         $$ = std::to_string(k);
     }
     | WRITE value SEMICOLON {
         decode_val($2, "");
-        int k = manager.add_keyword_block(Keyword::_WRITE, decoded_values[0], decoded_values[2]);
+        int k = manager.add_keyword_block(Keyword::_WRITE, decoded_values[0], decoded_values[1]);
         $$ = std::to_string(k);
     }
 ;
@@ -198,7 +198,7 @@ args:
 expression:
     value {
         decode_val($1, "");
-        int e = manager.add_expr_to_buffor(ExprOperatorType::_MUL, decoded_values[0], decoded_values[2], "", "");
+        int e = manager.add_expr_to_buffor(ExprOperatorType::_NOOP, decoded_values[0], decoded_values[2], "", "");
         $$ = std::to_string(e);
     }
     | value PLUS value {

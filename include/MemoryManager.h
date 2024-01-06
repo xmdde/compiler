@@ -32,7 +32,7 @@ class MemoryManager {
     // registers?
     std::vector<std::shared_ptr<CodeBlock> > graph;
 
-    std::vector<Value> memory;
+    //std::vector<Value> memory;
     std::vector<Value> global_consts;
     std::vector<Procedure> procedures;
     std::map<std::string, int> consts_map;
@@ -45,7 +45,7 @@ public:
     int current_procedure;
     std::vector<Configuration> configs;
 
-    MemoryManager() : graph(), memory(), global_consts(), consts_map(), args_decl_buffor(), asm_code() {
+    MemoryManager() : graph(), global_consts(), consts_map(), args_decl_buffor(), asm_code() {
         configs = std::vector<Configuration>();
         expr_buffor = std::vector<Expression>();
         logger.log("Created MemoryManager | graph.size=" + std::to_string(graph.size()));
@@ -77,6 +77,10 @@ public:
     void set_procedures_in_graph();
     void log_procedures_info();
     void export_ast();
+
+    void initialize_all_consts();
+    void translate_block(std::shared_ptr<CodeBlock> block);
+    void translate_keyword_block(std::shared_ptr<CodeBlock> block);  // jesli next jest empty to trzeba inaczej uzup. jumps
 
     void test();
 };

@@ -8,13 +8,13 @@
 
 class Procedure {
     int head_id;
-    std::string name;
+    std::string procedure_name;
     std::vector<Value> params;
     std::vector<Value> local_vals;
     std::map<std::pair<ValType, std::string>, int> map;
 
 public:
-    Procedure(const std::string& name) : name(name), map(), params(), local_vals() {}
+    Procedure(const std::string& name) : procedure_name(name), map(), params(), local_vals() {}
     Procedure() : map(), params(), local_vals() {}
 
     void set_head(int id) {
@@ -26,7 +26,7 @@ public:
     }
 
     void set_name(const std::string& p_name) {
-        name = p_name;
+        procedure_name = p_name;
     }
 
     void add_local_val(int id, const std::string& name);

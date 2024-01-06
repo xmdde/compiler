@@ -10,7 +10,7 @@ enum ValType {
 class Value {
     std::string name;
     ValType type;
-    int ID = -1;  //aka memory cell
+    int ID = -1;  // aka memory cell
     int size = 0;
 
 public:
@@ -29,10 +29,18 @@ public:
         }
         return data;
     }
+
+    int get_id() {
+        return ID;
+    }
+
+    std::string get_name() {
+        return name;
+    }
 };
 
 enum ExprOperatorType {
-    _PLUS, _MIN, _MUL, _DIV, _MOD
+    _PLUS, _MIN, _MUL, _DIV, _MOD, _NOOP
 };
 
 class Expression {
@@ -41,8 +49,6 @@ class Expression {
     std::string val2 = "";
     std::string val1_idx = "";
     std::string val2_idx = "";
-    bool if_idx1_num;
-    bool if_idx2_num;
 
 public:
     Expression(ExprOperatorType op, std::string val1, std::string val2, std::string idx1, std::string idx2)

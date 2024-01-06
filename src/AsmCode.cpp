@@ -11,12 +11,10 @@ void AsmCode::print_asm_code() {
 void AsmCode::create_const_in_reg(int n, const std::string& reg) {
     const std::string nn = std::to_string(n);
     logger.log("|create_const_in_reg| " + nn + " to " + reg);
-
     if (n == 0) {
         asm_instructions.push_back(AsmInstruction("RST", reg, ins_ptr++, "# make " + nn));
         return;
     }
-
     std::stack<int> bin;
     while (n != 1) {
         bin.push(n%2);
@@ -33,6 +31,13 @@ void AsmCode::create_const_in_reg(int n, const std::string& reg) {
         }
         bin.pop();
     }
+}
+
+void AsmCode::place_id_in_ra(int id, int idx_id) {  // for arrays
+    create_const_in_reg(id, "d");
+    create_const_in_reg(idx_id, "e");
+    asm_instructions.push_back(AsmInstruction("LOAD", "e", ins_ptr++));
+    asm_instructions.push_back(AsmInstruction("ADD", "d", ins_ptr++));  // mamy adres w ra
 }
 
 void AsmCode::store_ra_in_p(const int p_id) {
