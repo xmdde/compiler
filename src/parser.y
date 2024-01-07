@@ -198,7 +198,7 @@ args:
 expression:
     value {
         decode_val($1, "");
-        int e = manager.add_expr_to_buffor(ExprOperatorType::_NOOP, decoded_values[0], decoded_values[2], "", "");
+        int e = manager.add_expr_to_buffor(ExprOperatorType::_NOOP, decoded_values[0], "", decoded_values[1], "");
         $$ = std::to_string(e);
     }
     | value PLUS value {

@@ -25,7 +25,7 @@ void Procedure::add_local_arr(int id, const std::string& name, int size) {
         local_vals.push_back(Value(id, name, size));
         p_logger.log("Created Value: " + local_vals.back().get_vals_to_logger() + ". | local_vals.size=" + std::to_string(local_vals.size()));
 
-        map[std::make_pair(ValType::_ID, name)] = id;
+        map[std::make_pair(ValType::_ARR, name)] = id;
         p_logger.log("Added ((_ARR," + name + "), " + std::to_string(id) + ") to map. | map.size=" + std::to_string(map.size()));
     } else {
         p_logger.log("ERROR - value already in the map");  // change to error in bison
@@ -39,8 +39,13 @@ void Procedure::add_params_templates(std::vector<Value> p) {
 }
 
 int Procedure::get_val_id(const std::string& name, ValType type) {
-    //p_logger.log("|get_val_id| " + procedure_name + " | get " + name);
-    return map.find(std::make_pair(type, name))->second;
+    p_logger.log("|get_val_id| " + procedure_name + " | get " + name);
+    if (type == ValType::_ID) {
+        p_logger.log("szukam _ID");
+    }
+    int id = map.find(std::make_pair(type, name))->second;
+    p_logger.log("id is: " + std::to_string(id));
+    return id;
 }
 
 void Procedure::log_info() {

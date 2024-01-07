@@ -31,6 +31,9 @@ class AsmCode {
     std::vector<AsmInstruction> asm_instructions;
 
 public:
+    int mul_k;
+    int div_k;
+
     AsmCode() : asm_instructions() {}
 
     int get_k() {
@@ -50,12 +53,14 @@ public:
         asm_instructions.push_back(AsmInstruction(code, arg, ins_ptr++, com));
     }
 
+    void asm_multiply();
+    void asm_divide();
+
     void print_asm_code();
     void create_const_in_reg(int n, const std::string& reg);
     void store_ra_in_p(const int p_id);
-    void asm_multiply();
-
     void place_id_in_ra(int id, int idx_id);
+    void indirect_load_put(const std::string& reg);
 };
 
 #endif  // COMPILER_INCLUDE_ASMCODE_H

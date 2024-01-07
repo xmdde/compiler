@@ -58,6 +58,10 @@ public:
     virtual Keyword get_keyword() {
         return Keyword::_EMPTY;
     }
+
+    virtual Expression* get_expression() {
+        return nullptr;
+    }
 };
 
 enum CondOperatorType {
@@ -70,7 +74,7 @@ class CondBlock : public CodeBlock {
     std::string val2;
     std::string val1_idx = "";
     std::string val2_idx = "";
-    // TODO(): check if idx num (decide if it's even important)
+
 public:
     CondBlock(int id, CondOperatorType type, std::string val1, std::string val2, std::string val1_idx, std::string val2_idx, AsmCode* code)
         : CodeBlock(id, code), op(type), val1(val1), val2(val2), val1_idx(val1_idx), val2_idx(val2_idx) {
@@ -84,7 +88,7 @@ public:
 
 class AssignBlock : public CodeBlock {
     std::string val;
-    std::string val_idx = "";  // TODO(): check if idx num
+    std::string val_idx = "";
     Expression expr;
 
 public:
@@ -92,7 +96,8 @@ public:
         block_type = "AssignBlock";
     }
 
-    AssignBlock(int id, std::string val, std::string idx, Expression expression, AsmCode* code) : CodeBlock(id, code), val(val), val_idx(idx), expr(expression) {
+    AssignBlock(int id, std::string val, std::string idx, Expression expression, AsmCode* code)
+        : CodeBlock(id, code), val(val), val_idx(idx), expr(expression) {
         block_type = "AssignBlock";
     }
 
@@ -107,6 +112,10 @@ public:
     virtual std::string get_val_idx() override {
         return val_idx;
     }
+
+    virtual Expression* get_expression() override {
+        return &expr;
+    }
 };
 
 class ProcedureCall : public CodeBlock {
@@ -114,7 +123,8 @@ class ProcedureCall : public CodeBlock {
     std::vector<std::string> params; //check default empty proc
 
 public:
-    ProcedureCall(int id, std::string name, std::vector<std::string> params, AsmCode* code) : CodeBlock(id, code), procedure_name(name), params(params) {
+    ProcedureCall(int id, std::string name, std::vector<std::string> params, AsmCode* code)
+        : CodeBlock(id, code), procedure_name(name), params(params) {
         block_type = "ProcedureCall";
     }
 
@@ -136,7 +146,8 @@ public:
         block_type = "KeywordBlock";
     }
 
-    KeywordBlock(int id, Keyword type, const std::string& val, const std::string& idx, AsmCode* code) : CodeBlock(id, code), type(type), val(val), val_idx(idx) {
+    KeywordBlock(int id, Keyword type, const std::string& val, const std::string& idx, AsmCode* code)
+        : CodeBlock(id, code), type(type), val(val), val_idx(idx) {
         block_type = "KeywordBlock";
     }
 

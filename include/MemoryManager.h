@@ -81,6 +81,9 @@ public:
     void initialize_all_consts();
     void translate_block(std::shared_ptr<CodeBlock> block);
     void translate_keyword_block(std::shared_ptr<CodeBlock> block);  // jesli next jest empty to trzeba inaczej uzup. jumps
+    void translate_assign_block(std::shared_ptr<CodeBlock> block);
+    void translate_expression(Expression* expr);
+    void place_expr_values_in_rb_rc(const std::string& val1, const std::string& val1_idx, const std::string& val2, const std::string& val2_idx, const int proc_num);
 
     void test();
 };
