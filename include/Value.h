@@ -12,9 +12,12 @@ class Value {
     ValType type;
     int ID = -1;  // aka memory cell
     int size = 0;
+    bool if_param = false;
 
 public:
     Value(int id, ValType type, const std::string& name) : ID(id), type(type), name(name) {}
+
+    Value(int id, ValType type, const std::string& name, bool param) : ID(id), type(type), name(name), if_param(param) {}
 
     Value(int id, const std::string& name, int size) : ID(id), name(name), size(size) {
         type = ValType::_ARR;
@@ -23,9 +26,9 @@ public:
     Value(ValType type, const std::string& name) : type(type), name(name) {}  // for procedures params
 
     std::string get_vals_to_logger() {
-        std::string data = "ID=" + std::to_string(ID) + ", name = " + name;
+        std::string data = "ID=" + std::to_string(ID) + ", name = " + name + ", if_param=" + std::to_string(if_param);
         if (type == ValType::_ARR) {
-            data += ", ARR size =" + std::to_string(size) + ", end_ID=" + std::to_string(ID+size-1);
+            data += ", ARR size=" + std::to_string(size) + ", end_ID=" + std::to_string(ID+size-1);
         }
         return data;
     }
@@ -36,6 +39,10 @@ public:
 
     std::string get_name() {
         return name;
+    }
+
+    ValType get_type() {
+        return type;
     }
 };
 

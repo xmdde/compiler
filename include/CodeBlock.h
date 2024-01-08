@@ -11,6 +11,10 @@ enum Keyword {
     _WRITE, _READ, _EMPTY
 };
 
+enum CondOperatorType {
+    _EQ, _NEQ, _LLESS, _LMORE, _LLEQ, _LMEQ
+};
+
 class CodeBlock {
 public:
     int ID;
@@ -59,13 +63,13 @@ public:
         return Keyword::_EMPTY;
     }
 
+    virtual CondOperatorType get_cond() {
+        return CondOperatorType::_EQ;
+    }
+
     virtual Expression* get_expression() {
         return nullptr;
     }
-};
-
-enum CondOperatorType {
-    _EQ, _NEQ, _LLESS, _LMORE, _LLEQ, _LMEQ
 };
 
 class CondBlock : public CodeBlock {
@@ -83,6 +87,26 @@ public:
 
     std::string get_vals_to_logger() override {
         return "ID=" + std::to_string(ID) + ", val1 = " + val1 + ", idx1 = " + val1_idx + ", val2 = " + val2 + ", idx2 = " + val2_idx;
+    }
+
+    virtual std::string get_val() override {
+        return val1;
+    }
+
+    virtual std::string get_val_idx() override {
+        return val1_idx;
+    }
+
+    virtual std::string get_val2() override {
+        return val2;
+    }
+
+    virtual std::string get_val2_idx() override {
+        return val2_idx;
+    }
+
+    virtual CondOperatorType get_cond() override {
+        return op;
     }
 };
 

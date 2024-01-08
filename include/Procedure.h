@@ -32,8 +32,9 @@ public:
     void add_local_val(int id, const std::string& name);
     void add_local_arr(int id, const std::string& name, int size);
     void add_params_templates(std::vector<Value> p);
-    // void fill_in_params_info(); tutaj lapanie bledow xd + add to map
+    void add_params_to_map();
     int get_val_id(const std::string& name, ValType type);
+    bool if_param(const std::string& name, ValType type);
 
     void log_info();
 };

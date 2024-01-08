@@ -73,6 +73,7 @@ public:
     void set_procedure_head(const std::string& proc_id, const std::string& conf);
     int get_val_id(const std::string& name, ValType type, const int proc_id);
     int get_const_id(const std::string& num);
+    int get_next_block_k(int id, bool next_type);
 
     void set_procedures_in_graph();
     void log_procedures_info();
@@ -82,8 +83,10 @@ public:
     void translate_block(std::shared_ptr<CodeBlock> block);
     void translate_keyword_block(std::shared_ptr<CodeBlock> block);  // jesli next jest empty to trzeba inaczej uzup. jumps
     void translate_assign_block(std::shared_ptr<CodeBlock> block);
-    void translate_expression(Expression* expr);
+    void translate_cond_block(std::shared_ptr<CodeBlock> block);
+
     void place_expr_values_in_rb_rc(const std::string& val1, const std::string& val1_idx, const std::string& val2, const std::string& val2_idx, const int proc_num);
+    void resolve_jumps();
 
     void test();
 };

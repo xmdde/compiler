@@ -17,6 +17,24 @@ void Procedure::add_local_val(int id, const std::string& name) {
     }
 }
 
+void Procedure::add_params_to_map() {
+    p_logger.log("|add_params_to_map| Trying to add params to map. params.size()=" + std::to_string(params.size()));
+    for (int i = 0; i < params.size(); i++) {
+        std::string t = (params[i].get_type() == ValType::_ARR) ? "_ARR" : "_ID";
+        std::string name = params[i].get_name();
+        int id = params[i].get_id();
+        ValType type = params[i].get_type();
+
+        p_logger.log(std::to_string(i) + "| ((" + t + "," + name + "), " + std::to_string(id) + ")");
+        if (map.find(std::make_pair(type, name)) == map.end()) {
+            map[std::make_pair(type, name)] = id;
+            p_logger.log("Added to map. | map.size=" + std::to_string(map.size()));
+        } else {
+            p_logger.log("ERROR - value already in the map");  // change to error in bison / catch exceptions
+        }
+    }
+}
+
 void Procedure::add_local_arr(int id, const std::string& name, int size) {
     p_logger.log("|add_local_arr| Trying to add local array Value: ID=" + std::to_string(id) + 
                  ", name = " + name + ", size=" + std::to_string(size));
@@ -36,6 +54,7 @@ void Procedure::add_params_templates(std::vector<Value> p) {
     p_logger.log("|add_params_templates| Trying to add a vector of parameters: size=" + std::to_string(p.size()));
     params = p;
     p_logger.log("params.size=" + std::to_string(params.size()));
+    add_params_to_map();
 }
 
 int Procedure::get_val_id(const std::string& name, ValType type) {
@@ -43,9 +62,16 @@ int Procedure::get_val_id(const std::string& name, ValType type) {
     if (type == ValType::_ID) {
         p_logger.log("szukam _ID");
     }
-    int id = map.find(std::make_pair(type, name))->second;
-    p_logger.log("id is: " + std::to_string(id));
+    int id = map.find(std::make_pair(type, name))->second; //p_logger.log("id is: " + std::to_string(id));
     return id;
+}
+
+bool Procedure::if_param(const std::string& name, ValType type) {
+    for (auto p : params) {
+        if (p.get_name() == name && p.get_type() == type)
+            return true;
+    }
+    return false;
 }
 
 void Procedure::log_info() {
