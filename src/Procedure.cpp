@@ -62,7 +62,7 @@ int Procedure::get_val_id(const std::string& name, ValType type) {
     if (type == ValType::_ID) {
         p_logger.log("szukam _ID");
     }
-    int id = map.find(std::make_pair(type, name))->second; //p_logger.log("id is: " + std::to_string(id));
+    int id = map.find(std::make_pair(type, name))->second; // p_logger.log("id is: " + std::to_string(id));
     return id;
 }
 
@@ -85,5 +85,6 @@ void Procedure::log_info() {
         p += val.get_vals_to_logger() + "\n";
     }
     p_logger.log("| local_vals: size=" + std::to_string(local_vals.size()) + " |\n" + v +
-                 "| params: size=" + std::to_string(params.size()) + " |\n" + p + "map.size=" + std::to_string(map.size()));
+                 "| params: size=" + std::to_string(params.size()) + " |\n" + p + "map size=" + std::to_string(map.size()));
+    p_logger.log("return adress=" + std::to_string(return_adress));
 }

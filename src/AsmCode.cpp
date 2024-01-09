@@ -34,9 +34,11 @@ void AsmCode::create_const_in_reg(int n, const std::string& reg) {
 }
 
 void AsmCode::place_id_in_ra(int id, int idx_id) {  // for arrays
-    logger.log("|place_id_in_ra| id=" + std::to_string(id) + ", idx_id=" + std::to_string(idx_id));
+    logger.log("|place_id_in_ra| id=" + std::to_string(id) + ", idx_id/idx_val=" + std::to_string(idx_id));
     create_const_in_reg(id, "e");
+    //indirect load if id is param
     create_const_in_reg(idx_id, "f");
+    //indirect load if idx is param
     asm_instructions.push_back(AsmInstruction("LOAD", "f", ins_ptr++));
     asm_instructions.push_back(AsmInstruction("ADD", "e", ins_ptr++));  // mamy adres w ra
 }
@@ -49,7 +51,61 @@ void AsmCode::store_ra_in_p(const int p_id) {
 // [ID]rx --> [p_ID]rx
 void AsmCode::indirect_load_put(const std::string& reg) {
     asm_instructions.push_back(AsmInstruction("LOAD", reg, ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("PUT", reg, ins_ptr++));
+    asm_instructions.push_back(AsmInstruction("PUT", reg, ins_ptr++));  // if a to nic sie nie dzieje
+}
+
+void AsmCode::get_ins_to_complete(std::vector<int>& ins_to_resolve) {
+    for (int i = 0; i < asm_instructions.size(); i++) {
+        if (asm_instructions[i].jump_to_resolve)
+            ins_to_resolve.push_back(i);
+    }
+}
+
+void AsmCode::complete_jump(const int idx, const int k) {
+    logger.log("|complete_jump| " + std::to_string(idx) + ", " + std::to_string(k));
+    asm_instructions[idx].complete_jump(k);
+}
+
+bool AsmCode::get_where_jump_type(const int idx) {
+    return asm_instructions[idx].where_jump;
+}
+
+int AsmCode::get_block_id(const int idx) {
+    return asm_instructions[idx].get_block_id();
+}
+
+void AsmCode::cond__lless(const std::string& r1, const std::string& r2, const int block_id) {
+    asm_instructions.push_back(AsmInstruction("GET", r2, ins_ptr++, "# check <"));
+    asm_instructions.push_back(AsmInstruction("SUB", r1, ins_ptr++));
+    asm_instructions.push_back(AsmInstruction("JPOS", ins_ptr++, true, block_id));
+    asm_instructions.push_back(AsmInstruction("JUMP", ins_ptr++, false, block_id));
+}
+
+void AsmCode::cond__lleq(const std::string& r1, const std::string& r2, const int block_id) {
+    asm_instructions.push_back(AsmInstruction("GET", r1, ins_ptr++, "# check <="));
+    asm_instructions.push_back(AsmInstruction("SUB", r2, ins_ptr++));
+    asm_instructions.push_back(AsmInstruction("JPOS", ins_ptr++, false, block_id));
+    asm_instructions.push_back(AsmInstruction("JUMP", ins_ptr++, true, block_id));
+}
+
+void AsmCode::cond__eq(const int block_id) {  // b,c
+    asm_instructions.push_back(AsmInstruction("GET", "b", ins_ptr++, "# check ="));
+    asm_instructions.push_back(AsmInstruction("SUB", "c", ins_ptr++));
+    asm_instructions.push_back(AsmInstruction("JPOS", ins_ptr++, false, block_id));
+    asm_instructions.push_back(AsmInstruction("GET", "c", ins_ptr++));
+    asm_instructions.push_back(AsmInstruction("SUB", "b", ins_ptr++));
+    asm_instructions.push_back(AsmInstruction("JPOS", ins_ptr++, false, block_id));
+    asm_instructions.push_back(AsmInstruction("JUMP", ins_ptr++, true, block_id));
+}
+
+void AsmCode::cond__neq(const int block_id) {  // b,c
+    asm_instructions.push_back(AsmInstruction("GET", "b", ins_ptr++, "# check !="));
+    asm_instructions.push_back(AsmInstruction("SUB", "c", ins_ptr++));
+    asm_instructions.push_back(AsmInstruction("JPOS", ins_ptr++, true, block_id));
+    asm_instructions.push_back(AsmInstruction("GET", "c", ins_ptr++));
+    asm_instructions.push_back(AsmInstruction("SUB", "b", ins_ptr++));
+    asm_instructions.push_back(AsmInstruction("JPOS", ins_ptr++, true, block_id));
+    asm_instructions.push_back(AsmInstruction("JUMP", ins_ptr++, false, block_id));
 }
 
 // MULTIPLY b * c (result in d), uses: a,b,c,d,e + instruction ptr in h
@@ -76,6 +132,7 @@ void AsmCode::asm_multiply() {
     asm_instructions.push_back(AsmInstruction("JUMPR", "h", ins_ptr++));  // wynik w d, adres powrotu w h
 }
 
+// DIVIDE b/c (result in d, modulo in b), uses: a,b,c,d,e,f + instruction ptr in h
 void AsmCode::asm_divide() {
     div_k = ins_ptr;
     asm_instructions.push_back(AsmInstruction("RST", "d", ins_ptr++, "# div"));

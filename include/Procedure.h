@@ -12,10 +12,10 @@ class Procedure {
     std::vector<Value> params;
     std::vector<Value> local_vals;
     std::map<std::pair<ValType, std::string>, int> map;
+    int return_adress;
 
 public:
-    Procedure(const std::string& name) : procedure_name(name), map(), params(), local_vals() {}
-    Procedure() : map(), params(), local_vals() {}
+    Procedure(int id) : map(), params(), local_vals(), return_adress(id) {}
 
     void set_head(int id) {
         head_id = id;

@@ -144,7 +144,7 @@ public:
 
 class ProcedureCall : public CodeBlock {
     std::string procedure_name;
-    std::vector<std::string> params; //check default empty proc
+    std::vector<std::string> params;  //check default empty proc
 
 public:
     ProcedureCall(int id, std::string name, std::vector<std::string> params, AsmCode* code)

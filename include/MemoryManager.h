@@ -32,7 +32,6 @@ class MemoryManager {
     // registers?
     std::vector<std::shared_ptr<CodeBlock> > graph;
 
-    //std::vector<Value> memory;
     std::vector<Value> global_consts;
     std::vector<Procedure> procedures;
     std::map<std::string, int> consts_map;
@@ -84,10 +83,11 @@ public:
     void translate_keyword_block(std::shared_ptr<CodeBlock> block);  // jesli next jest empty to trzeba inaczej uzup. jumps
     void translate_assign_block(std::shared_ptr<CodeBlock> block);
     void translate_cond_block(std::shared_ptr<CodeBlock> block);
+    void translate_procedure_call(std::shared_ptr<CodeBlock> block);
 
     void place_expr_values_in_rb_rc(const std::string& val1, const std::string& val1_idx, const std::string& val2, const std::string& val2_idx, const int proc_num);
     void resolve_jumps();
-
+    void jump_to_main(const int i);
     void test();
 };
 
