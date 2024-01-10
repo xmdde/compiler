@@ -98,6 +98,8 @@ public:
     int get_block_id(const int idx);
     bool get_where_jump_type(const int idx);
     void complete_jump(const int idx, const int k);
+
+    void place_id_in_ra_idx_num(int id, int idx);
 };
 
 #endif  // COMPILER_INCLUDE_ASMCODE_H
