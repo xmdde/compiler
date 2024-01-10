@@ -29,12 +29,22 @@ public:
         procedure_name = p_name;
     }
 
+    std::string get_name() {
+        return procedure_name;
+    }
+
+    int get_return_adress() {
+        return return_adress;
+    }
+
     void add_local_val(int id, const std::string& name);
     void add_local_arr(int id, const std::string& name, int size);
     void add_params_templates(std::vector<Value> p);
     void add_params_to_map();
+
     int get_val_id(const std::string& name, ValType type);
     bool if_param(const std::string& name, ValType type);
+    std::vector<std::pair<ValType, int> >* params_info();
 
     void log_info();
 };

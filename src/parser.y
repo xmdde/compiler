@@ -70,7 +70,6 @@ MemoryManager manager;
 program_all:
     procedures main {
         manager.set_procedures_in_graph();
-        manager.test();
     }
 ;
 procedures:
@@ -310,7 +309,13 @@ void decode_val(std::string v1, std::string v2) {
 int handle(const char* input_file) {
     yyin = fopen(input_file, "r");
     int parsed = yyparse();
-    //manager.export_ast();
+    // manager.export_ast();
+    try {
+        manager.test();
+    } catch (const std::runtime_error& e) {
+        std::cerr << e.what() << std::endl;
+        return -1;
+    }
     return parsed;
 }
 

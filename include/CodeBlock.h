@@ -70,6 +70,14 @@ public:
     virtual Expression* get_expression() {
         return nullptr;
     }
+
+    virtual std::string get_proc_name() {
+        return "";
+    }
+
+    virtual std::vector<std::string>* get_params() {
+        return nullptr;
+    }
 };
 
 class CondBlock : public CodeBlock {
@@ -157,6 +165,14 @@ public:
         for (auto p : params)
             v += p + ", ";
         return v;
+    }
+
+    virtual std::string get_proc_name() override {
+        return procedure_name;
+    }
+
+    virtual std::vector<std::string>* get_params() override {
+        return &params;
     }
 };
 

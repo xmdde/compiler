@@ -33,27 +33,34 @@ void AsmCode::create_const_in_reg(int n, const std::string& reg) {
     }
 }
 
-void AsmCode::place_id_in_ra(int id, int idx_id) {  // for arrays
+void AsmCode::place_id_in_ra(int id, int idx_id, const bool is_id_param, const bool is_idx_param) {  // for arrays
     logger.log("|place_id_in_ra| id=" + std::to_string(id) + ", idx_id/idx_val=" + std::to_string(idx_id));
     create_const_in_reg(id, "e");
-    //indirect load if id is param
+    if (is_id_param) {
+        indirect_load_put("e");
+    }
     create_const_in_reg(idx_id, "f");
-    //indirect load if idx is param
+    if (is_idx_param) {
+        indirect_load_put("f");
+    }
     asm_instructions.push_back(AsmInstruction("LOAD", "f", ins_ptr++));
     asm_instructions.push_back(AsmInstruction("ADD", "e", ins_ptr++));  // mamy adres w ra
 }
 
-void AsmCode::place_id_in_ra_idx_num(int id, int idx) {
+void AsmCode::place_id_in_ra_idx_num(int id, int idx, const bool is_id_param) {
     logger.log("|place_id_in_ra_idx_num| id=" + std::to_string(id) + ", idx=" + std::to_string(idx));
     create_const_in_reg(id, "e");
-    // indirect load if id is param
     create_const_in_reg(idx, "f");
-    // indirect load if idx is param
-    asm_instructions.push_back(AsmInstruction("GET", "f", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("ADD", "e", ins_ptr++));  // mamy adres w ra
+    if (is_id_param) {
+        indirect_load_put("e");
+        asm_instructions.push_back(AsmInstruction("ADD", "f", ins_ptr++));  // mamy adres w ra
+    } else {
+        asm_instructions.push_back(AsmInstruction("GET", "f", ins_ptr++));
+        asm_instructions.push_back(AsmInstruction("ADD", "e", ins_ptr++));  // mamy adres w ra
+    }
 }
 
-//place_id_in_ra przeladowane dla big numbers...
+// place_id_in_ra przeladowane dla big numbers...
 
 void AsmCode::store_ra_in_p(const int p_id) {
     create_const_in_reg(p_id, "b");

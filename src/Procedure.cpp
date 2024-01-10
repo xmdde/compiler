@@ -59,10 +59,14 @@ void Procedure::add_params_templates(std::vector<Value> p) {
 
 int Procedure::get_val_id(const std::string& name, ValType type) {
     p_logger.log("|get_val_id| " + procedure_name + " | get " + name);
-    if (type == ValType::_ID) {
-        p_logger.log("szukam _ID");
+    if (type == ValType::_ID) {p_logger.log("szukam _ID");}
+
+    int id = -1;
+    if (map.find(std::make_pair(type, name)) == map.end()) {
+        throw std::runtime_error("zmienna o podanym typie i nazwie nie istnieje");
+    } else {
+        id = map.find(std::make_pair(type, name))->second; // p_logger.log("id is: " + std::to_string(id));
     }
-    int id = map.find(std::make_pair(type, name))->second; // p_logger.log("id is: " + std::to_string(id));
     return id;
 }
 
@@ -72,6 +76,14 @@ bool Procedure::if_param(const std::string& name, ValType type) {
             return true;
     }
     return false;
+}
+
+std::vector<std::pair<ValType, int> >* Procedure::params_info() {
+    std::vector<std::pair<ValType, int> >* info = new std::vector<std::pair<ValType, int>>();
+    for (auto v : params) {
+        info->push_back(std::make_pair(v.get_type(), v.get_id()));
+    }
+    return info;
 }
 
 void Procedure::log_info() {

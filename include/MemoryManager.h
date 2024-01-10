@@ -70,9 +70,12 @@ public:
     void add_val_to_procedure(const std::string& proc_id, ValType type, const std::string& name, const std::string& size);
     void set_procedure_name(const std::string& proc_id, const std::string& name);
     void set_procedure_head(const std::string& proc_id, const std::string& conf);
+
     int get_val_id(const std::string& name, ValType type, const int proc_id);
     int get_const_id(const std::string& num);
     int get_next_block_k(int id, bool next_type);
+    int get_procedure_first_k(const int proc);
+    int get_procedure_id(const std::string& name, const int curr_proc);
 
     void set_procedures_in_graph();
     void log_procedures_info();

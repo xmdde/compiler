@@ -82,7 +82,7 @@ public:
     void print_asm_code();
     void create_const_in_reg(int n, const std::string& reg);
     void store_ra_in_p(const int p_id);
-    void place_id_in_ra(int id, int idx_id);  // TODO(me): place_id_in_ra(int id, int idx_id, bool if_id_param, bool if_idx_param);
+    void place_id_in_ra(int id, int idx_id, const bool is_id_param, const bool is_idx_param);  // TODO(me): place_id_in_ra(int id, int idx_id, bool if_id_param, bool if_idx_param);
     void indirect_load_put(const std::string& reg);
 
     void cond__lless(const std::string& r1, const std::string& r2, const int block_id);
@@ -99,7 +99,7 @@ public:
     bool get_where_jump_type(const int idx);
     void complete_jump(const int idx, const int k);
 
-    void place_id_in_ra_idx_num(int id, int idx);
+    void place_id_in_ra_idx_num(int id, int idx, const bool is_id_param);
 };
 
 #endif  // COMPILER_INCLUDE_ASMCODE_H
