@@ -43,6 +43,18 @@ void AsmCode::place_id_in_ra(int id, int idx_id) {  // for arrays
     asm_instructions.push_back(AsmInstruction("ADD", "e", ins_ptr++));  // mamy adres w ra
 }
 
+void AsmCode::place_id_in_ra_idx_num(int id, int idx) {
+    logger.log("|place_id_in_ra_idx_num| id=" + std::to_string(id) + ", idx=" + std::to_string(idx));
+    create_const_in_reg(id, "e");
+    // indirect load if id is param
+    create_const_in_reg(idx, "f");
+    // indirect load if idx is param
+    asm_instructions.push_back(AsmInstruction("GET", "f", ins_ptr++));
+    asm_instructions.push_back(AsmInstruction("ADD", "e", ins_ptr++));  // mamy adres w ra
+}
+
+//place_id_in_ra przeladowane dla big numbers...
+
 void AsmCode::store_ra_in_p(const int p_id) {
     create_const_in_reg(p_id, "b");
     asm_instructions.push_back(AsmInstruction("STORE", "b", ins_ptr++));
