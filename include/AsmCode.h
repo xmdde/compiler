@@ -57,6 +57,7 @@ class AsmCode {
 public:
     int mul_k;
     int div_k;
+    int mod_k;
 
     AsmCode() : asm_instructions() {}
 
@@ -78,28 +79,25 @@ public:
 
     void asm_multiply();
     void asm_divide();
+    void asm_modulo();
 
     void print_asm_code();
-    void create_const_in_reg(int n, const std::string& reg);
+    void create_const_in_reg(long long n, const std::string& reg);
     void store_ra_in_p(const int p_id);
-    void place_id_in_ra(int id, int idx_id, const bool is_id_param, const bool is_idx_param);  // TODO(me): place_id_in_ra(int id, int idx_id, bool if_id_param, bool if_idx_param);
+    void place_id_in_ra(int id, int idx_id, const bool is_id_param, const bool is_idx_param);
+    void place_id_in_ra_idx_num(int id, long long idx, const bool is_id_param);
     void indirect_load_put(const std::string& reg);
 
     void cond__lless(const std::string& r1, const std::string& r2, const int block_id);
     void cond__lleq(const std::string& r1, const std::string& r2, const int block_id);
-    void cond__eq(const int block_id);  // dwa warunki
+    void cond__eq(const int block_id);
     void cond__neq(const int block_id);
-
-    void jump_to_next_block(const int block_id) {
-        asm_instructions.push_back(AsmInstruction("JUMP", ins_ptr++, true, block_id));
-    }
 
     void get_ins_to_complete(std::vector<int>& ins_to_resolve);
     int get_block_id(const int idx);
     bool get_where_jump_type(const int idx);
     void complete_jump(const int idx, const int k);
-
-    void place_id_in_ra_idx_num(int id, int idx, const bool is_id_param);
+    void jump_to_next_block(const int block_id);
 };
 
 #endif  // COMPILER_INCLUDE_ASMCODE_H

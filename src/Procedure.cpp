@@ -13,7 +13,7 @@ void Procedure::add_local_val(int id, const std::string& name) {
         map[std::make_pair(ValType::_ID, name)] = id;
         p_logger.log("Added ((_ID," + name + "), " + std::to_string(id) + ") to map. | map.size=" + std::to_string(map.size()));
     } else {
-        p_logger.log("ERROR - value already in the map");  // change to error in bison
+        throw std::runtime_error("zmienna o podanym typie i nazwie juz istnieje");  // change to error in bison
     }
 }
 
@@ -30,7 +30,7 @@ void Procedure::add_params_to_map() {
             map[std::make_pair(type, name)] = id;
             p_logger.log("Added to map. | map.size=" + std::to_string(map.size()));
         } else {
-            p_logger.log("ERROR - value already in the map");  // change to error in bison / catch exceptions
+            throw std::runtime_error("zmienna o podanym typie i nazwie juz istnieje");  // change to error in bison / catch exceptions
         }
     }
 }
@@ -46,7 +46,7 @@ void Procedure::add_local_arr(int id, const std::string& name, int size) {
         map[std::make_pair(ValType::_ARR, name)] = id;
         p_logger.log("Added ((_ARR," + name + "), " + std::to_string(id) + ") to map. | map.size=" + std::to_string(map.size()));
     } else {
-        p_logger.log("ERROR - value already in the map");  // change to error in bison
+        throw std::runtime_error("zmienna o podanym typie i nazwie juz istnieje");
     }
 }
 

@@ -390,7 +390,6 @@ void MemoryManager::translate_keyword_block(std::shared_ptr<CodeBlock> block) {
     const int proc = block->procedure_num;
     Keyword key = block->get_keyword();
 
-    // TODO(): jak tu rozwiazac indirect, zastanow sie kiedy potrzebne
     if (key == Keyword::_READ) {
         block->first_instruction_k = asm_code.get_k();
         if (val_idx == "") {
@@ -402,7 +401,7 @@ void MemoryManager::translate_keyword_block(std::shared_ptr<CodeBlock> block) {
             asm_code.add("STORE", "b");
         } else {
             if (is_num(val_idx)) {
-                asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoi(val_idx), procedures[proc].if_param(val, ValType::_ARR));
+                asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoll(val_idx), procedures[proc].if_param(val, ValType::_ARR));
             } else {
                 int idx_id = get_val_id(val_idx, ValType::_ID, proc);
                 asm_code.place_id_in_ra(get_val_id(val, ValType::_ARR, proc), idx_id, procedures[proc].if_param(val, ValType::_ARR), procedures[proc].if_param(val_idx, ValType::_ID));
@@ -415,7 +414,7 @@ void MemoryManager::translate_keyword_block(std::shared_ptr<CodeBlock> block) {
         block->first_instruction_k = asm_code.get_k();
         if (val_idx == "") {
             if (is_num(val)) {
-                asm_code.create_const_in_reg(std::stoi(val), "a");
+                asm_code.create_const_in_reg(std::stoll(val), "a");
             } else {
                 int idx_id = get_val_id(val, ValType::_ID, proc);
                 asm_code.create_const_in_reg(idx_id, "d");
@@ -427,7 +426,7 @@ void MemoryManager::translate_keyword_block(std::shared_ptr<CodeBlock> block) {
             asm_code.add("WRITE", "");
         } else {
             if (is_num(val_idx)) {
-                asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoi(val_idx), procedures[proc].if_param(val, ValType::_ARR));
+                asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoll(val_idx), procedures[proc].if_param(val, ValType::_ARR));
             } else {
                 int idx_id = get_val_id(val_idx, ValType::_ID, proc);
                 asm_code.place_id_in_ra(get_val_id(val, ValType::_ARR, proc), idx_id, procedures[proc].if_param(val, ValType::_ARR), procedures[proc].if_param(val_idx, ValType::_ID));
@@ -461,7 +460,7 @@ void MemoryManager::translate_assign_block(std::shared_ptr<CodeBlock> block) {
         }
     } else {
         if (is_num(val_idx)) {
-            asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoi(val_idx), procedures[proc].if_param(val, ValType::_ARR));
+            asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoll(val_idx), procedures[proc].if_param(val, ValType::_ARR));
         } else {
             int idx_id = get_val_id(val_idx, ValType::_ID, proc);
             asm_code.place_id_in_ra(get_val_id(val, ValType::_ARR, proc), idx_id, procedures[proc].if_param(val, ValType::_ARR), procedures[proc].if_param(val_idx, ValType::_ID));
@@ -490,17 +489,17 @@ void MemoryManager::translate_assign_block(std::shared_ptr<CodeBlock> block) {
         asm_code.add("GET", "d");
         asm_code.add("STORE", "g", "# " + val + ":=");
         break;
-    default:  // div/mod
+    case ExprOperatorType::_DIV:
         asm_code.add("STRK", "h", "# store k in h");
         asm_code.add("JUMP", std::to_string(asm_code.div_k), "# divide");
-
-        if (expr->get_operator() == ExprOperatorType::_DIV) {
-            asm_code.add("GET", "d");
-            asm_code.add("STORE", "g", "# " + val + ":=");
-        } else {
-            asm_code.add("GET", "b");
-            asm_code.add("STORE", "g", "# " + val + ":=");
-        }
+        asm_code.add("GET", "d");
+        asm_code.add("STORE", "g", "# " + val + ":=");
+        break;
+    default:  // mod
+        asm_code.add("STRK", "h", "# store k in h");
+        asm_code.add("JUMP", std::to_string(asm_code.div_k), "# modulo");
+        asm_code.add("GET", "b");
+        asm_code.add("STORE", "g", "# " + val + ":=");
         break;
     }
 }
@@ -511,7 +510,7 @@ void MemoryManager::place_expr_values_in_rb_rc(const std::string& val1, const st
 
     if (val1_idx == "") {
         if (is_num(val1)) {
-            asm_code.create_const_in_reg(std::stoi(val1), "a");
+            asm_code.create_const_in_reg(std::stoll(val1), "a");
             asm_code.add("PUT", "b");
         } else {
             int idx_id = get_val_id(val1, ValType::_ID, proc_num);
@@ -530,7 +529,7 @@ void MemoryManager::place_expr_values_in_rb_rc(const std::string& val1, const st
         logger.log("if params: " + val1 + " " + std::to_string(is_val1_param) + ", " + val1_idx + " " + std::to_string(is_idx1_param));
 
         if (is_num(val1_idx)) {
-            asm_code.place_id_in_ra_idx_num(get_val_id(val1, ValType::_ARR, proc_num), std::stoi(val1_idx), is_val1_param);
+            asm_code.place_id_in_ra_idx_num(get_val_id(val1, ValType::_ARR, proc_num), std::stoll(val1_idx), is_val1_param);
             asm_code.add("LOAD", "a");
             asm_code.add("PUT", "b");
         } else {
@@ -546,7 +545,7 @@ void MemoryManager::place_expr_values_in_rb_rc(const std::string& val1, const st
 
     if (val2_idx == "") {
         if (is_num(val2)) {
-            asm_code.create_const_in_reg(std::stoi(val2), "a");
+            asm_code.create_const_in_reg(std::stoll(val2), "a");
             asm_code.add("PUT", "c");
         } else {
             int idx_id = get_val_id(val2, ValType::_ID, proc_num);
@@ -564,7 +563,7 @@ void MemoryManager::place_expr_values_in_rb_rc(const std::string& val1, const st
         logger.log("if params: " + val2 + " " + std::to_string(is_val2_param) + ", " + val2_idx + " " + std::to_string(is_idx2_param));
 
         if (is_num(val2_idx)) {
-            asm_code.place_id_in_ra_idx_num(get_val_id(val2, ValType::_ARR, proc_num), std::stoi(val2_idx), is_val2_param);
+            asm_code.place_id_in_ra_idx_num(get_val_id(val2, ValType::_ARR, proc_num), std::stoll(val2_idx), is_val2_param);
             asm_code.add("LOAD", "a");
             asm_code.add("PUT", "c");
         } else {
@@ -616,8 +615,8 @@ void MemoryManager::translate_procedure_call(std::shared_ptr<CodeBlock> block) {
     std::vector<std::string>* params = block->get_params();
     int proc_id = get_procedure_id(name, block->procedure_num);
     std::vector<std::pair<ValType, int> >* params_info = procedures[proc_id].params_info();
-    logger.log("procedure name = " + name + ", params size=" + std::to_string(params->size()) + ", proc_id=" + std::to_string(proc_id) +
-               ", params_info size=" + std::to_string(params_info->size()));
+    logger.log("procedure name = " + name + ", params size=" + std::to_string(params->size()) +
+               ", proc_id=" + std::to_string(proc_id) + ", params_info size=" + std::to_string(params_info->size()));
 
     if (params_info->size() != params->size()) {
         throw std::runtime_error("zła liczba argumentow w wywolaniu procedury");
@@ -627,6 +626,10 @@ void MemoryManager::translate_procedure_call(std::shared_ptr<CodeBlock> block) {
         int id = get_val_id((*params)[i], (*params_info)[i].first, block->procedure_num);
         logger.log("put id=" + std::to_string(id) + +"(" + (*params)[i] + ") in p_id=" + std::to_string((*params_info)[i].second));
         asm_code.create_const_in_reg(id, "a");
+        if (procedures[ block->procedure_num].if_param((*params)[i], (*params_info)[i].first)) {
+            logger.log((*params)[i] + " is param");
+            asm_code.indirect_load_put("a");
+        }
         asm_code.store_ra_in_p((*params_info)[i].second);  // TODO(me): !!!jesli tutaj tez param to trzeba zrobic load wartosci, nie ID!!!
     }
     // load k to p with return adress
@@ -643,6 +646,7 @@ void MemoryManager::test() {
     asm_code.add("JUMP", std::to_string(asm_code.get_k()+20+32), "# przeskocz mul/div");
     asm_code.asm_multiply();
     asm_code.asm_divide();
+    asm_code.asm_modulo();
     for (auto g : graph)
         translate_block(g);
     jump_to_main(first_jump);
