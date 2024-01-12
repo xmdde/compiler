@@ -1,6 +1,9 @@
 #include "MemoryManager.h"
 #include "AsmCode.h"
+
 #include <regex>
+#include <fstream>
+#include <iostream>
 
 bool is_num(const std::string& val) {
     std::smatch matcher;
@@ -483,13 +486,13 @@ void MemoryManager::translate_assign_block(std::shared_ptr<CodeBlock> block) {
         asm_code.add("SUB", "c", "# min");
         asm_code.add("STORE", "g", "# " + val + ":=");
         break;
-    case ExprOperatorType::_MUL: // d
+    case ExprOperatorType::_MUL:  // d
         asm_code.add("STRK", "h", "# store k in h");
         asm_code.add("JUMP", std::to_string(asm_code.mul_k), "# multiply");
         asm_code.add("GET", "d");
         asm_code.add("STORE", "g", "# " + val + ":=");
         break;
-    case ExprOperatorType::_DIV:
+    case ExprOperatorType::_DIV:  // d
         asm_code.add("STRK", "h", "# store k in h");
         asm_code.add("JUMP", std::to_string(asm_code.div_k), "# divide");
         asm_code.add("GET", "d");
@@ -641,17 +644,20 @@ void MemoryManager::translate_procedure_call(std::shared_ptr<CodeBlock> block) {
 
 /*----------------------------------------------------------------------------------------------*/
 
-void MemoryManager::test() {
+void MemoryManager::translate() {
     const int first_jump = asm_code.get_k();
-    asm_code.add("JUMP", std::to_string(asm_code.get_k()+20+32), "# przeskocz mul/div");
+    asm_code.add("JUMP", "", "# przeskocz mul/div");
     asm_code.asm_multiply();
     asm_code.asm_divide();
-    asm_code.asm_modulo();
     for (auto g : graph)
         translate_block(g);
     jump_to_main(first_jump);
     resolve_jumps();
-    asm_code.print_asm_code();
+    // asm_code.print_asm_code();
+}
+
+void MemoryManager::save_asm_to_file(const char* filename) {
+    asm_code.save_to_file(filename);
 }
 
 void MemoryManager::jump_to_main(const int i) {

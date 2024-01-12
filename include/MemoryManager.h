@@ -28,8 +28,7 @@ class MemoryManager {
     logging::Logger logger = logging::Logger("logs.log");
     AsmCode asm_code;
 
-    int memory_counter = 0; // values IDs
-    // registers?
+    int memory_counter = 0;  // values' IDs counter
     std::vector<std::shared_ptr<CodeBlock> > graph;
 
     std::vector<Value> global_consts;
@@ -50,12 +49,14 @@ public:
         logger.log("Created MemoryManager | graph.size=" + std::to_string(graph.size()));
     }
 
-    int add_cond_block(CondOperatorType type, const std::string& val1, const std::string& val2, const std::string& val1_idx, const std::string& val2_idx);
+    int add_cond_block(CondOperatorType type, const std::string& val1, const std::string& val2, const std::string& val1_idx,
+                       const std::string& val2_idx);
     int add_assign_block(const std::string& val, const std::string& val_idx);
     int add_keyword_block(Keyword type);
     int add_keyword_block(Keyword type, const std::string& val, const std::string& val_idx);
     int add_proc_call(const std::string& name, std::vector<std::string> args);
-    int add_expr_to_buffor(ExprOperatorType op, const std::string& val1, const std::string& val2, const std::string& idx1, const std::string& idx2);
+    int add_expr_to_buffor(ExprOperatorType op, const std::string& val1, const std::string& val2, const std::string& idx1,
+                           const std::string& idx2);
     void add_val_to_buffor(ValType type, const std::string& name);
     void clear_args_decl_buffor();
     void add_const(const std::string& num);
@@ -88,10 +89,13 @@ public:
     void translate_cond_block(std::shared_ptr<CodeBlock> block);
     void translate_procedure_call(std::shared_ptr<CodeBlock> block);
 
-    void place_expr_values_in_rb_rc(const std::string& val1, const std::string& val1_idx, const std::string& val2, const std::string& val2_idx, const int proc_num);
+    void place_expr_values_in_rb_rc(const std::string& val1, const std::string& val1_idx, const std::string& val2,
+                                    const std::string& val2_idx, const int proc_num);
+
     void resolve_jumps();
     void jump_to_main(const int i);
-    void test();
+    void translate();
+    void save_asm_to_file(const char* filename);
 };
 
 #endif  // COMPILER_INCLUDE_MEMORYMANAGER_H

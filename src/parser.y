@@ -18,7 +18,6 @@ int curr_line = 0;
 
 std::vector<std::string> decoded_values(4, "");
 std::vector<std::string> args_buff;
-auto bison_logger = logging::Logger("bison_logs.log");
 MemoryManager manager;
 %}
 
@@ -89,7 +88,7 @@ main:
         manager.set_procedure_name($3, "main");
         manager.set_procedure_head($3, $5);
     }
-    | PROGRAM IS IN commands END {  // tworz procedure main
+    | PROGRAM IS IN commands END {  // create procedure main
         std::string p = std::to_string(manager.create_procedure());
         manager.set_procedure_name(p, "main");
         manager.set_procedure_head(p, $4);
@@ -306,19 +305,21 @@ void decode_val(std::string v1, std::string v2) {
     decoded_values[3] = index_substring2;
 }
 
-int handle(const char* input_file) {
+int handle(const char* input_file, const char* output_file) {
     yyin = fopen(input_file, "r");
     int parsed = yyparse();
-    // manager.export_ast();
+
     try {
-        manager.test();
+        manager.translate();
+        manager.save_asm_to_file(output_file);
     } catch (const std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
         return -1;
     }
+
     return parsed;
 }
 
 int main(int argc, const char** argv) {
-    return handle(argv[1]);
+    return handle(argv[1], argv[2]);
 }

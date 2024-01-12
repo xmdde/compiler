@@ -57,7 +57,6 @@ class AsmCode {
 public:
     int mul_k;
     int div_k;
-    int mod_k;
 
     AsmCode() : asm_instructions() {}
 
@@ -79,13 +78,11 @@ public:
 
     void asm_multiply();
     void asm_divide();
-    void asm_modulo();
 
-    void print_asm_code();
     void create_const_in_reg(long long n, const std::string& reg);
     void store_ra_in_p(const int p_id);
-    void place_id_in_ra(int id, int idx_id, const bool is_id_param, const bool is_idx_param);
-    void place_id_in_ra_idx_num(int id, long long idx, const bool is_id_param);
+    void place_id_in_ra(const int id, const int idx_id, const bool is_id_param, const bool is_idx_param);
+    void place_id_in_ra_idx_num(const int id, const long long idx, const bool is_id_param);
     void indirect_load_put(const std::string& reg);
 
     void cond__lless(const std::string& r1, const std::string& r2, const int block_id);
@@ -98,6 +95,9 @@ public:
     bool get_where_jump_type(const int idx);
     void complete_jump(const int idx, const int k);
     void jump_to_next_block(const int block_id);
+
+    void print_asm_code();
+    void save_to_file(const char* filename);
 };
 
 #endif  // COMPILER_INCLUDE_ASMCODE_H
