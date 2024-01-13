@@ -38,9 +38,11 @@ class MemoryManager {
     std::vector<Expression> expr_buffor;
     std::vector<Value> args_decl_buffor;
 
+    int loop_depth = 0;
+    int line = 0;  // 2/3
+    int current_procedure = 0;
 public:
     int id_counter = 0;
-    int current_procedure;
     std::vector<Configuration> configs;
 
     MemoryManager() : graph(), global_consts(), consts_map(), args_decl_buffor(), asm_code() {
@@ -84,11 +86,14 @@ public:
 
     void initialize_all_consts();
     void translate_block(std::shared_ptr<CodeBlock> block);
-    void translate_keyword_block(std::shared_ptr<CodeBlock> block);  // jesli next jest empty to trzeba inaczej uzup. jumps
+    void translate_keyword_block(std::shared_ptr<CodeBlock> block);
     void translate_assign_block(std::shared_ptr<CodeBlock> block);
     void translate_cond_block(std::shared_ptr<CodeBlock> block);
     void translate_procedure_call(std::shared_ptr<CodeBlock> block);
 
+    void check_for_errors(const std::string& name, ValType type, const int proc_num);
+    void check_for_errors_help(const std::string& val1, const std::string& val1_idx, const std::string& val2,
+                               const std::string& val2_idx, const int proc_num);
     void place_expr_values_in_rb_rc(const std::string& val1, const std::string& val1_idx, const std::string& val2,
                                     const std::string& val2_idx, const int proc_num);
 

@@ -313,7 +313,7 @@ int handle(const char* input_file, const char* output_file) {
         manager.translate();
         manager.save_asm_to_file(output_file);
     } catch (const std::runtime_error& e) {
-        std::cerr << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << std::endl;
         return -1;
     }
 

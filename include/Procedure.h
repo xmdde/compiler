@@ -44,6 +44,9 @@ public:
 
     int get_val_id(const std::string& name, ValType type);
     bool if_param(const std::string& name, ValType type);
+    bool is_initialized(const std::string& name, ValType type);
+    void initialize(const std::string& name, ValType type);
+    Value* get_value(const std::string& name, ValType type);
     std::vector<std::pair<ValType, int> >* params_info();
 
     void log_info();

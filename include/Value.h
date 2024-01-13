@@ -13,6 +13,7 @@ class Value {
     int ID = -1;  // aka memory cell
     int size = 0;
     bool if_param = false;
+    bool initialized = false;
 
 public:
     Value(int id, ValType type, const std::string& name) : ID(id), type(type), name(name) {}
@@ -43,6 +44,14 @@ public:
 
     ValType get_type() {
         return type;
+    }
+
+    void initialize() {
+        initialized = true;
+    }
+
+    bool is_initialized() {
+        return initialized;
     }
 };
 

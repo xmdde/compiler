@@ -6,14 +6,16 @@ logging::Logger p_logger = logging::Logger("procedure_logs.log");
 void Procedure::add_local_val(int id, const std::string& name) {
     p_logger.log("|add_local_val| Trying to add local Value: ID=" + std::to_string(id) + ", name = " + name);
     
-    if (map.find(std::make_pair(ValType::_ID, name)) == map.end()) {
+    if (map.find(std::make_pair(ValType::_ARR, name)) != map.end()) {
+        throw std::runtime_error("powtórne użycie identyfikatora " + name + " w procedurze " + procedure_name);
+    } else if (map.find(std::make_pair(ValType::_ID, name)) == map.end()) {
         local_vals.push_back(Value(id, ValType::_ID, name));
         p_logger.log("Created Value: " + local_vals.back().get_vals_to_logger() + ". | local_vals.size=" + std::to_string(local_vals.size()));
 
         map[std::make_pair(ValType::_ID, name)] = id;
         p_logger.log("Added ((_ID," + name + "), " + std::to_string(id) + ") to map. | map.size=" + std::to_string(map.size()));
     } else {
-        throw std::runtime_error("zmienna o podanym typie i nazwie juz istnieje");  // change to error in bison
+        throw std::runtime_error("powtórne użycie identyfikatora " + name + " w procedurze " + procedure_name);
     }
 }
 
@@ -24,13 +26,16 @@ void Procedure::add_params_to_map() {
         std::string name = params[i].get_name();
         int id = params[i].get_id();
         ValType type = params[i].get_type();
+        ValType the_other_one = (type == ValType::_ARR) ? ValType::_ID : ValType::_ARR;
 
         p_logger.log(std::to_string(i) + "| ((" + t + "," + name + "), " + std::to_string(id) + ")");
-        if (map.find(std::make_pair(type, name)) == map.end()) {
+        if (map.find(std::make_pair(the_other_one, name)) != map.end()) {
+            throw std::runtime_error("powtórne użycie identyfikatora " + name + " w procedurze " + procedure_name);
+        } else if (map.find(std::make_pair(type, name)) == map.end()) {
             map[std::make_pair(type, name)] = id;
             p_logger.log("Added to map. | map.size=" + std::to_string(map.size()));
         } else {
-            throw std::runtime_error("zmienna o podanym typie i nazwie juz istnieje");  // change to error in bison / catch exceptions
+            throw std::runtime_error("powtórne użycie identyfikatora " + name + " w procedurze " + procedure_name);
         }
     }
 }
@@ -39,14 +44,16 @@ void Procedure::add_local_arr(int id, const std::string& name, int size) {
     p_logger.log("|add_local_arr| Trying to add local array Value: ID=" + std::to_string(id) + 
                  ", name = " + name + ", size=" + std::to_string(size));
 
-    if (map.find(std::make_pair(ValType::_ARR, name)) == map.end()) {
+     if (map.find(std::make_pair(ValType::_ID, name)) != map.end()) {
+        throw std::runtime_error("powtórne użycie identyfikatora " + name + " w procedurze " + procedure_name);
+    } else if (map.find(std::make_pair(ValType::_ARR, name)) == map.end()) {
         local_vals.push_back(Value(id, name, size));
         p_logger.log("Created Value: " + local_vals.back().get_vals_to_logger() + ". | local_vals.size=" + std::to_string(local_vals.size()));
 
         map[std::make_pair(ValType::_ARR, name)] = id;
         p_logger.log("Added ((_ARR," + name + "), " + std::to_string(id) + ") to map. | map.size=" + std::to_string(map.size()));
     } else {
-        throw std::runtime_error("zmienna o podanym typie i nazwie juz istnieje");
+        throw std::runtime_error("powtórne użycie identyfikatora " + name + " w procedurze " + procedure_name);
     }
 }
 
@@ -54,7 +61,12 @@ void Procedure::add_params_templates(std::vector<Value> p) {
     p_logger.log("|add_params_templates| Trying to add a vector of parameters: size=" + std::to_string(p.size()));
     params = p;
     p_logger.log("params.size=" + std::to_string(params.size()));
-    add_params_to_map();
+    try {
+        add_params_to_map();
+    } catch (const std::runtime_error& e) {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        exit(-1);
+    }
 }
 
 int Procedure::get_val_id(const std::string& name, ValType type) {
@@ -63,9 +75,9 @@ int Procedure::get_val_id(const std::string& name, ValType type) {
 
     int id = -1;
     if (map.find(std::make_pair(type, name)) == map.end()) {
-        throw std::runtime_error("zmienna o podanym typie i nazwie nie istnieje");
+        throw std::runtime_error("uzycie niezadeklarowanej zmiennej " + name + " o podanym typie");
     } else {
-        id = map.find(std::make_pair(type, name))->second; // p_logger.log("id is: " + std::to_string(id));
+        id = map.find(std::make_pair(type, name))->second;
     }
     return id;
 }
@@ -76,6 +88,45 @@ bool Procedure::if_param(const std::string& name, ValType type) {
             return true;
     }
     return false;
+}
+
+Value* Procedure::get_value(const std::string& name, ValType type) {
+    for (auto& v : params) {
+        if (v.get_name() == name && v.get_type() == type)
+            return &v;
+    }
+    for (auto& v : local_vals) {
+        if (v.get_name() == name && v.get_type() == type)
+            return &v;
+    }
+    return nullptr;
+}
+
+bool Procedure::is_initialized(const std::string& name, ValType type) {
+    for (auto& v : params) {
+        if (v.get_name() == name && v.get_type() == type)
+            return v.is_initialized();
+    }
+    for (auto& v : local_vals) {
+        if (v.get_name() == name && v.get_type() == type)
+            return v.is_initialized();
+    }
+    return false;
+}
+
+void Procedure::initialize(const std::string& name, ValType type) {
+    for (auto& v : params) {
+        if (v.get_name() == name && v.get_type() == type) {
+            v.initialize();
+            return;
+        }
+    }
+    for (auto& v : local_vals) {
+        if (v.get_name() == name && v.get_type() == type) {
+            v.initialize();
+            return;
+        }
+    }
 }
 
 std::vector<std::pair<ValType, int> >* Procedure::params_info() {
@@ -98,5 +149,5 @@ void Procedure::log_info() {
     }
     p_logger.log("| local_vals: size=" + std::to_string(local_vals.size()) + " |\n" + v +
                  "| params: size=" + std::to_string(params.size()) + " |\n" + p + "map size=" + std::to_string(map.size()));
-    p_logger.log("return adress=" + std::to_string(return_adress));
+    p_logger.log("| return adress=" + std::to_string(return_adress));
 }

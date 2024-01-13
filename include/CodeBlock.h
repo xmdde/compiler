@@ -32,7 +32,8 @@ public:
     virtual std::string get_vals_to_logger() = 0;
 
     virtual std::string get_nbhs_to_logger() {
-        return "In Block ID=" + std::to_string(ID) + " | next_TRUE ID = " + std::to_string(next_TRUE) + ", next_FALSE ID = " + std::to_string(next_FALSE);
+        return "In Block ID=" + std::to_string(ID) + " | next_TRUE ID = " + std::to_string(next_TRUE) +
+               ", next_FALSE ID = " + std::to_string(next_FALSE);
     }
 
     virtual void set_next_true(int id) {
@@ -77,6 +78,10 @@ public:
 
     virtual std::vector<std::string>* get_params() {
         return nullptr;
+    }
+
+    virtual std::string get_empty_type() {
+        return "";
     }
 };
 
