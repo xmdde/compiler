@@ -6,6 +6,14 @@
 
 #include "Value.h"
 
+/*
+class UndeclaredValue : public std::exception {
+    public:
+    char* what() {
+        return "";
+    }
+}; */
+
 class Procedure {
     int head_id;
     std::string procedure_name;
@@ -42,13 +50,12 @@ public:
     void add_params_templates(std::vector<Value> p);
     void add_params_to_map();
 
-    int get_val_id(const std::string& name, ValType type);
+    int get_val_id(const std::string& name, ValType type, const int line_no);
     bool if_param(const std::string& name, ValType type);
     bool is_initialized(const std::string& name, ValType type);
     void initialize(const std::string& name, ValType type);
-    Value* get_value(const std::string& name, ValType type);
     std::vector<std::pair<ValType, int> >* params_info();
-
+    int get_local_vals_size();
     void log_info();
 };
 

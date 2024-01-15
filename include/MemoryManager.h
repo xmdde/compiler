@@ -39,8 +39,8 @@ class MemoryManager {
     std::vector<Value> args_decl_buffor;
 
     int loop_depth = 0;
-    int line = 0;  // 2/3
-    int current_procedure = 0;
+    int line = 1;  // 2/3
+    int current_proc = -1;
 public:
     int id_counter = 0;
     std::vector<Configuration> configs;

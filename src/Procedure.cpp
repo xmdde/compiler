@@ -69,13 +69,13 @@ void Procedure::add_params_templates(std::vector<Value> p) {
     }
 }
 
-int Procedure::get_val_id(const std::string& name, ValType type) {
+int Procedure::get_val_id(const std::string& name, ValType type, const int line_no) {
     p_logger.log("|get_val_id| " + procedure_name + " | get " + name);
     if (type == ValType::_ID) {p_logger.log("szukam _ID");}
 
     int id = -1;
     if (map.find(std::make_pair(type, name)) == map.end()) {
-        throw std::runtime_error("uzycie niezadeklarowanej zmiennej " + name + " o podanym typie");
+        throw std::runtime_error("uzycie niezadeklarowanej zmiennej " + name + " o podanym typie (l. " + std::to_string(line_no) + ")");
     } else {
         id = map.find(std::make_pair(type, name))->second;
     }
@@ -90,16 +90,8 @@ bool Procedure::if_param(const std::string& name, ValType type) {
     return false;
 }
 
-Value* Procedure::get_value(const std::string& name, ValType type) {
-    for (auto& v : params) {
-        if (v.get_name() == name && v.get_type() == type)
-            return &v;
-    }
-    for (auto& v : local_vals) {
-        if (v.get_name() == name && v.get_type() == type)
-            return &v;
-    }
-    return nullptr;
+int Procedure::get_local_vals_size() {
+    return local_vals.size();
 }
 
 bool Procedure::is_initialized(const std::string& name, ValType type) {

@@ -98,5 +98,5 @@ int current_line = 1;
 
 [[:space:]]     {}
 
-.               { std::cout << "invalid character in line: " << current_line; exit(1);}
+.               { std::cout << "invalid character in line: " << current_line; exit(1); }
 %%

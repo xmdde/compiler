@@ -248,7 +248,7 @@ void MemoryManager::add_val_to_procedure(const std::string& proc_id, ValType typ
             memory_counter++;
         }
     } catch (const std::runtime_error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << " (l. " << std::to_string(line) << ")" << std::endl;
         exit(-1);
     }
 }
@@ -271,7 +271,7 @@ void MemoryManager::set_procedure_head(const std::string& proc_id, const std::st
 }
 
 int MemoryManager::get_val_id(const std::string& name, ValType type, const int proc_id) {
-    return procedures[proc_id].get_val_id(name, type);
+    return procedures[proc_id].get_val_id(name, type, line);
 }
 
 int MemoryManager::get_const_id(const std::string& num) {
@@ -347,13 +347,13 @@ int MemoryManager::get_procedure_first_k(const int proc) {
 
 int MemoryManager::get_procedure_id(const std::string& name, const int curr_proc) {
     if (procedures[curr_proc].get_name() == name) {
-        throw std::runtime_error("rekurencja w procedurze " + procedures[curr_proc].get_name());
+        throw std::runtime_error("rekurencja w procedurze " + procedures[curr_proc].get_name() + " (l. " + std::to_string(line) + ")");
     }
     for (int i = 0; i < curr_proc; i++) {
         if (procedures[i].get_name() == name)
             return i;
     }
-    throw std::runtime_error("niezdefiniowana wczesniej procedura " + name);
+    throw std::runtime_error("niezdefiniowana wczesniej procedura " + name + " (l. " + std::to_string(line) + ")");
 }
 
 /*----------------------------------------------------------------------------------------------*/
@@ -366,6 +366,15 @@ void MemoryManager::initialize_all_consts() {
 }
 
 void MemoryManager::translate_block(std::shared_ptr<CodeBlock> block) {
+    if (current_proc != block->procedure_num) {
+        if (current_proc != -1)
+            line += 2;
+        line += 2;
+        current_proc = block->procedure_num;
+        if (procedures[current_proc].get_local_vals_size() != 0)
+            line++;
+    }
+
     std::string bt = block->block_type;
     if (bt == "KeywordBlock") {
         translate_keyword_block(block);
@@ -378,6 +387,7 @@ void MemoryManager::translate_block(std::shared_ptr<CodeBlock> block) {
     } else {
         translate_procedure_call(block);
     }
+    line++;
 
     if (block->next_TRUE == -1) {
         const int p = block->procedure_num;
@@ -388,7 +398,6 @@ void MemoryManager::translate_block(std::shared_ptr<CodeBlock> block) {
             asm_code.add("INC", "a");
             asm_code.add("INC", "a");
             asm_code.add("JUMPR", "a");
-            //line+=2/3
         } else {
             asm_code.add("HALT", "");
         }
@@ -643,11 +652,18 @@ void MemoryManager::translate_procedure_call(std::shared_ptr<CodeBlock> block) {
                ", proc_id=" + std::to_string(proc_id) + ", params_info size=" + std::to_string(params_info->size()));
 
     if (params_info->size() != params->size()) {
-        throw std::runtime_error("zla liczba argumentow w wywolaniu procedury");
+        throw std::runtime_error("zla liczba argumentow w wywolaniu procedury (l. " + std::to_string(line) + ")");
     }
 
     for (int i = 0; i < params->size(); i++) {
-        int id = get_val_id((*params)[i], (*params_info)[i].first, block->procedure_num);
+        int id;
+        try {
+            id = get_val_id((*params)[i], (*params_info)[i].first, block->procedure_num);
+        } catch (const std::runtime_error& e) {
+            std::cerr << "ERROR: niewlasciwe parametry w wywolaniu procedury " + name +
+                         " (l. " + std::to_string(line) + ")" << std::endl;
+            exit(-1);
+        }
         logger.log("put id=" + std::to_string(id) + +"(" + (*params)[i] + ") in p_id=" + std::to_string((*params_info)[i].second));
         asm_code.create_const_in_reg(id, "a");
         if (procedures[block->procedure_num].if_param((*params)[i], (*params_info)[i].first)) {
@@ -672,7 +688,7 @@ void MemoryManager::check_for_errors(const std::string& name, ValType type, cons
         if (loop_depth >= 1) {
             std::cerr << "WARNING: zmienna " + name + " moze byc niezainicjowana\n";
         } else {
-            throw std::runtime_error("uzycie niezainicjowanej zmiennej " + name);
+            throw std::runtime_error("uzycie niezainicjowanej zmiennej " + name + " (l. " + std::to_string(line) + ")");
         }
     }
 }
