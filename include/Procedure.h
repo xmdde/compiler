@@ -6,14 +6,6 @@
 
 #include "Value.h"
 
-/*
-class UndeclaredValue : public std::exception {
-    public:
-    char* what() {
-        return "";
-    }
-}; */
-
 class Procedure {
     int head_id;
     std::string procedure_name;

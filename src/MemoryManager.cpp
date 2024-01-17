@@ -257,9 +257,7 @@ void MemoryManager::set_procedure_name(const std::string& proc_id, const std::st
     logger.log("|set_procedure_name| " + proc_id + ", " + name);
     int idx = std::stoi(proc_id);
     procedures[idx].set_name(name);
-    //try {
-        procedures[idx].add_params_templates(args_decl_buffor);
-    //} catch (const std::runtime_error& e) {throw;}
+    procedures[idx].add_params_templates(args_decl_buffor);
     clear_args_decl_buffor();
 }
 
@@ -358,13 +356,6 @@ int MemoryManager::get_procedure_id(const std::string& name, const int curr_proc
 
 /*----------------------------------------------------------------------------------------------*/
 
-void MemoryManager::initialize_all_consts() {
-    for (auto n : global_consts) {
-        asm_code.create_const_in_reg(std::stoi(n.get_name()), "a");
-        asm_code.store_ra_in_p(n.get_id());
-    }
-}
-
 void MemoryManager::translate_block(std::shared_ptr<CodeBlock> block) {
     if (current_proc != block->procedure_num) {
         if (current_proc != -1)
@@ -454,7 +445,8 @@ void MemoryManager::translate_keyword_block(std::shared_ptr<CodeBlock> block) {
                 asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoll(val_idx), procedures[proc].if_param(val, ValType::_ARR));
             } else {
                 int idx_id = get_val_id(val_idx, ValType::_ID, proc);
-                asm_code.place_id_in_ra(get_val_id(val, ValType::_ARR, proc), idx_id, procedures[proc].if_param(val, ValType::_ARR), procedures[proc].if_param(val_idx, ValType::_ID));
+                asm_code.place_id_in_ra(get_val_id(val, ValType::_ARR, proc), idx_id, procedures[proc].if_param(val, ValType::_ARR),
+                                        procedures[proc].if_param(val_idx, ValType::_ID));
                 check_for_errors(val_idx, ValType::_ID, proc);
             }
             asm_code.add("LOAD", "a");
@@ -686,7 +678,7 @@ void MemoryManager::check_for_errors(const std::string& name, ValType type, cons
     logger.log("|check_for_errors| " + name + " in " + std::to_string(proc_num));
     if (type != ValType::_ARR && !procedures[proc_num].if_param(name, type) && !procedures[proc_num].is_initialized(name, type)) {
         if (loop_depth >= 1) {
-            std::cerr << "WARNING: zmienna " + name + " moze byc niezainicjowana\n";
+            std::cerr << "WARNING: zmienna " + name + " moze byc niezainicjowana (l. " + std::to_string(line) + ")\n";
         } else {
             throw std::runtime_error("uzycie niezainicjowanej zmiennej " + name + " (l. " + std::to_string(line) + ")");
         }

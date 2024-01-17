@@ -259,7 +259,6 @@ condition:
 ;
 value:
     NUM {
-        manager.add_const($1);
         $$ = $1;
     }
     | identifier {
@@ -271,7 +270,6 @@ identifier:
         $$ = $1;
     }
     | PIDENTIFIER LSQBR NUM RSQBR {
-        manager.add_const($3);
         $$ = $1 + "[" + $3 + "]";
     }
     | PIDENTIFIER LSQBR PIDENTIFIER RSQBR {

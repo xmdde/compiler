@@ -39,7 +39,7 @@ class MemoryManager {
     std::vector<Value> args_decl_buffor;
 
     int loop_depth = 0;
-    int line = 1;  // 2/3
+    int line = 1;
     int current_proc = -1;
 public:
     int id_counter = 0;
@@ -84,7 +84,6 @@ public:
     void log_procedures_info();
     void export_ast();
 
-    void initialize_all_consts();
     void translate_block(std::shared_ptr<CodeBlock> block);
     void translate_keyword_block(std::shared_ptr<CodeBlock> block);
     void translate_assign_block(std::shared_ptr<CodeBlock> block);
