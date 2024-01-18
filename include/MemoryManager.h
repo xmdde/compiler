@@ -95,6 +95,11 @@ public:
                                const std::string& val2_idx, const int proc_num);
     void place_expr_values_in_rb_rc(const std::string& val1, const std::string& val1_idx, const std::string& val2,
                                     const std::string& val2_idx, const int proc_num);
+    void place_expr_val_in_r(const std::string& val, const std::string& val_idx, const int proc_num, const std::string& r);
+
+    void handle_special_case(Expression* expr, const int proc_num);
+    void handle_special_div(Expression* expr, const int proc_num);
+    void handle_special_mul(Expression* expr, const int proc_num);
 
     void resolve_jumps();
     void jump_to_main(const int i);
