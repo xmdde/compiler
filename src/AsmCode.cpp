@@ -68,7 +68,9 @@ void AsmCode::store_ra_in_p(const int p_id) {
 // [ID]rx --> [p_ID]rx
 void AsmCode::indirect_load_put(const std::string& reg) {
     asm_instructions.push_back(AsmInstruction("LOAD", reg, ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("PUT", reg, ins_ptr++));  // if a to nic sie nie dzieje
+    if (reg != "a") {
+        asm_instructions.push_back(AsmInstruction("PUT", reg, ins_ptr++));  // if a to nic sie nie dzieje
+    }
 }
 
 void AsmCode::get_ins_to_complete(std::vector<int>& ins_to_resolve) {
@@ -195,40 +197,6 @@ void AsmCode::asm_divide() {
     asm_instructions.push_back(AsmInstruction("INC", "h", ins_ptr++));
     asm_instructions.push_back(AsmInstruction("INC", "h", ins_ptr++));
     asm_instructions.push_back(AsmInstruction("JUMPR", "h", ins_ptr++));  // wynik w d, mod w b
-    /*
-    asm_instructions.push_back(AsmInstruction("RST", "d", ins_ptr++, "# div"));
-    asm_instructions.push_back(AsmInstruction("GET", "c", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("JPOS", std::to_string(ins_ptr+3), ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("RST", "b", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("JUMP", std::to_string(ins_ptr+25), ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("PUT", "e", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("RST", "f", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("INC", "f", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("GET", "c", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("SUB", "b", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("JPOS", std::to_string(ins_ptr+19), ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("GET", "e", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("SUB", "b", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("JPOS", std::to_string(ins_ptr+3), ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("SHL", "e", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("SHL", "f", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("SHR", "f", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("SHR", "e", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("GET", "b", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("SUB", "e", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("PUT", "b", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("GET", "d", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("ADD", "f", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("PUT", "d", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("GET", "c", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("PUT", "e", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("RST", "f", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("INC", "f", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("JUMP", std::to_string(ins_ptr-20), ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("INC", "h", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("INC", "h", ins_ptr++));
-    asm_instructions.push_back(AsmInstruction("JUMPR", "h", ins_ptr++));  // wynik w d, mod w b
-    */
 }
 
 void AsmCode::save_to_file(const char* filename) {

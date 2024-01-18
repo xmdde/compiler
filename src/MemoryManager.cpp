@@ -15,11 +15,13 @@ bool is_num(const std::string& val) {
 }
 
 // Creates CondBlock and adds it to the graph. Returns its Configuration id (index in configs).
-int MemoryManager::add_cond_block(CondOperatorType type, const std::string& val1, const std::string& val2, const std::string& val1_idx, const std::string& val2_idx) {
+int MemoryManager::add_cond_block(CondOperatorType type, const std::string& val1, const std::string& val2, const std::string& val1_idx,
+                                  const std::string& val2_idx) {
     graph.push_back(std::make_shared<CondBlock>(id_counter, type, val1, val2, val1_idx, val2_idx, &asm_code));
     logger.log("Created CondBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
-    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
+    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" +
+               std::to_string(configs.size()));
     id_counter++;
     return configs.size() - 1;
 }
@@ -29,7 +31,8 @@ int MemoryManager::add_assign_block(const std::string& val, const std::string& v
     graph.push_back(std::make_shared<AssignBlock>(id_counter, val, val_idx, expr_buffor.back(), &asm_code));
     logger.log("Created AssignBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
-    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
+    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" +
+               std::to_string(configs.size()));
     id_counter++;
     return configs.size() - 1;
 }
@@ -39,7 +42,8 @@ int MemoryManager::add_keyword_block(Keyword type) {
     graph.push_back(std::make_shared<KeywordBlock>(id_counter, type, &asm_code));
     logger.log("Created KeywordBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
-    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
+    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" +
+               std::to_string(configs.size()));
     id_counter++;
     return configs.size() - 1;
 }
@@ -49,7 +53,8 @@ int MemoryManager::add_keyword_block(Keyword type, const std::string& val, const
     graph.push_back(std::make_shared<KeywordBlock>(id_counter, type, val, val_idx, &asm_code));
     logger.log("Created KeywordBlock: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
-    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
+    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" +
+               std::to_string(configs.size()));
     id_counter++;
     return configs.size() - 1;
 }
@@ -58,13 +63,15 @@ int MemoryManager::add_proc_call(const std::string& name, std::vector<std::strin
     graph.push_back(std::make_shared<ProcedureCall>(id_counter, name, args, &asm_code));
     logger.log("Created ProcedureCall: " + graph.back()->get_vals_to_logger() + "| graph.size=" + std::to_string(graph.size()));
     configs.push_back(Configuration(id_counter, id_counter));
-    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" + std::to_string(configs.size()));
+    logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" +
+               std::to_string(configs.size()));
     id_counter++;
     return configs.size() - 1;
 }
 
 // Creates Expression and adds it to the buffor. Returns its index.
-int MemoryManager::add_expr_to_buffor(ExprOperatorType op, const std::string& val1, const std::string& val2, const std::string& idx1, const std::string& idx2) {
+int MemoryManager::add_expr_to_buffor(ExprOperatorType op, const std::string& val1, const std::string& val2, const std::string& idx1,
+                                      const std::string& idx2) {
     expr_buffor.push_back(Expression(op, val1, val2, idx1, idx2));
     logger.log("Created " + expr_buffor.back().get_vals_to_logger() + "| expr_buffor.size=" + std::to_string(expr_buffor.size()));
     return expr_buffor.size() - 1;
@@ -76,14 +83,16 @@ void MemoryManager::clear_args_decl_buffor() {
 
 void MemoryManager::add_val_to_buffor(ValType type, const std::string& name) {
     args_decl_buffor.push_back(Value(memory_counter, type, name, true));
-    logger.log("|add_val_to_buffor| Created value template: " + args_decl_buffor.back().get_vals_to_logger() + "| args_decl_buffor.size=" + std::to_string(args_decl_buffor.size()));
+    logger.log("|add_val_to_buffor| Created value template: " + args_decl_buffor.back().get_vals_to_logger() + "| args_decl_buffor.size=" +
+               std::to_string(args_decl_buffor.size()));
     memory_counter++;
 }
 
 void MemoryManager::add_const(const std::string& num) {
     if (consts_map.find(num) == consts_map.end()) {
         global_consts.push_back(Value(memory_counter, ValType::_NUM, num));
-        logger.log("|add_consts| Created NUM Value " + global_consts.back().get_vals_to_logger() + "| global_consts.size=" + std::to_string(global_consts.size()));
+        logger.log("|add_consts| Created NUM Value " + global_consts.back().get_vals_to_logger() + "| global_consts.size=" +
+                   std::to_string(global_consts.size()));
         consts_map[num] = memory_counter;
         logger.log("Added (" + num + "," + std::to_string(memory_counter) + ") to the consts map.");
         memory_counter++;
@@ -414,7 +423,8 @@ void MemoryManager::translate_keyword_block(std::shared_ptr<CodeBlock> block) {
             asm_code.add("STORE", "b");
         } else {
             if (is_num(val_idx)) {
-                asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoll(val_idx), procedures[proc].if_param(val, ValType::_ARR));
+                asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoll(val_idx),
+                                                procedures[proc].if_param(val, ValType::_ARR));
             } else {
                 int idx_id = get_val_id(val_idx, ValType::_ID, proc);
                 asm_code.place_id_in_ra(get_val_id(val, ValType::_ARR, proc), idx_id, procedures[proc].if_param(val, ValType::_ARR),
@@ -442,7 +452,8 @@ void MemoryManager::translate_keyword_block(std::shared_ptr<CodeBlock> block) {
             asm_code.add("WRITE", "");
         } else {
             if (is_num(val_idx)) {
-                asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoll(val_idx), procedures[proc].if_param(val, ValType::_ARR));
+                asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoll(val_idx),
+                                                procedures[proc].if_param(val, ValType::_ARR));
             } else {
                 int idx_id = get_val_id(val_idx, ValType::_ID, proc);
                 asm_code.place_id_in_ra(get_val_id(val, ValType::_ARR, proc), idx_id, procedures[proc].if_param(val, ValType::_ARR),
@@ -482,7 +493,8 @@ void MemoryManager::translate_assign_block(std::shared_ptr<CodeBlock> block) {
         }
     } else {
         if (is_num(val_idx)) {
-            asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoll(val_idx), procedures[proc].if_param(val, ValType::_ARR));
+            asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoll(val_idx),
+                                            procedures[proc].if_param(val, ValType::_ARR));
         } else {
             int idx_id = get_val_id(val_idx, ValType::_ID, proc);
             check_for_errors(val_idx, ValType::_ID, proc);
@@ -531,11 +543,13 @@ void MemoryManager::translate_assign_block(std::shared_ptr<CodeBlock> block) {
 void MemoryManager::place_expr_values_in_rb_rc(const std::string& val1, const std::string& val1_idx, const std::string& val2,
                                                const std::string& val2_idx, const int proc_num) {
     logger.log("|place_expr_values_in_rb_rc| " + val1 + ", " + val1_idx + ", " + val2 + ", " + val2_idx);
-
+    bool opt = false;
+    if (val1 == val2 && val1_idx == val2_idx) {
+        opt = true;
+    }
     if (val1_idx == "") {
         if (is_num(val1)) {
-            asm_code.create_const_in_reg(std::stoll(val1), "a");
-            asm_code.add("PUT", "b");
+            asm_code.create_const_in_reg(std::stoll(val1), "b");
         } else {
             int idx_id = get_val_id(val1, ValType::_ID, proc_num);
             asm_code.create_const_in_reg(idx_id, "a");
@@ -566,11 +580,15 @@ void MemoryManager::place_expr_values_in_rb_rc(const std::string& val1, const st
 
     if (val2 == "")  // _NOOP
         return;
+    
+    if (opt) {
+        asm_code.add("PUT", "c");
+        return;
+    }
 
     if (val2_idx == "") {
         if (is_num(val2)) {
-            asm_code.create_const_in_reg(std::stoll(val2), "a");
-            asm_code.add("PUT", "c");
+            asm_code.create_const_in_reg(std::stoll(val2), "c");
         } else {
             int idx_id = get_val_id(val2, ValType::_ID, proc_num);
             asm_code.create_const_in_reg(idx_id, "a");
