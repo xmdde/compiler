@@ -23,6 +23,7 @@ public:
     AsmCode* asm_code;
     int first_instruction_k = -1;
     int procedure_num = -1;
+    int depth;
     std::string block_type;
 
     CodeBlock(int id, AsmCode* code) : ID(id) {
@@ -42,6 +43,14 @@ public:
 
     virtual void set_next_false(int id) {
         next_FALSE = id;
+    }
+
+    virtual void set_depth(const int loop_depth) {
+        depth = loop_depth;
+    }
+
+    virtual int get_depth() {
+        return depth;
     }
 
     virtual std::string get_val() {
@@ -157,7 +166,7 @@ public:
 
 class ProcedureCall : public CodeBlock {
     std::string procedure_name;
-    std::vector<std::string> params;  //check default empty proc
+    std::vector<std::string> params;
 
 public:
     ProcedureCall(int id, std::string name, std::vector<std::string> params, AsmCode* code)

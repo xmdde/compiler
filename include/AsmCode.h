@@ -50,7 +50,7 @@ public:
 };
 
 class AsmCode {
-    logging::Logger logger = logging::Logger("asm_logs.log");
+    // logging::Logger logger = logging::Logger("asm_logs.log");
     int ins_ptr = 0;
     std::vector<AsmInstruction> asm_instructions;
 

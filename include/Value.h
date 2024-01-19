@@ -118,6 +118,8 @@ public:
             return (val1 == "1" || val2 == "1" || val1 == "0" || val2 == "0" || is_power_of_2(val1) || is_power_of_2(val2));
         } else if (op == ExprOperatorType::_DIV) {
             return ((val1 == val2 && val1_idx == val2_idx) || val2 == "1" || is_power_of_2(val2));
+        } else if (op == ExprOperatorType::_MOD) {
+            return (val2 == "2");
         }
         return false;
     }

@@ -10,7 +10,7 @@ void AsmCode::print_asm_code() {
 
 void AsmCode::create_const_in_reg(long long n, const std::string& reg) {
     const std::string nn = std::to_string(n);
-    logger.log("|create_const_in_reg| " + nn + " to " + reg);
+    // logger.log("|create_const_in_reg| " + nn + " to " + reg);
     if (n == 0) {
         asm_instructions.push_back(AsmInstruction("RST", reg, ins_ptr++, "# make " + nn));
         return;
@@ -34,7 +34,7 @@ void AsmCode::create_const_in_reg(long long n, const std::string& reg) {
 }
 
 void AsmCode::place_id_in_ra(const int id, const int idx_id, const bool is_id_param, const bool is_idx_param) {  // for arrays
-    logger.log("|place_id_in_ra| id=" + std::to_string(id) + ", idx_id/idx_val=" + std::to_string(idx_id));
+    // logger.log("|place_id_in_ra| id=" + std::to_string(id) + ", idx_id/idx_val=" + std::to_string(idx_id));
     create_const_in_reg(id, "e");
     if (is_id_param) {
         indirect_load_put("e");
@@ -48,7 +48,7 @@ void AsmCode::place_id_in_ra(const int id, const int idx_id, const bool is_id_pa
 }
 
 void AsmCode::place_id_in_ra_idx_num(const int id, const long long idx, const bool is_id_param) {
-    logger.log("|place_id_in_ra_idx_num| id=" + std::to_string(id) + ", idx=" + std::to_string(idx));
+    // logger.log("|place_id_in_ra_idx_num| id=" + std::to_string(id) + ", idx=" + std::to_string(idx));
     create_const_in_reg(id, "e");
     create_const_in_reg(idx, "f");
     if (is_id_param) {
@@ -81,7 +81,7 @@ void AsmCode::get_ins_to_complete(std::vector<int>& ins_to_resolve) {
 }
 
 void AsmCode::complete_jump(const int idx, const int k) {
-    logger.log("|complete_jump| " + std::to_string(idx) + ", " + std::to_string(k));
+    // logger.log("|complete_jump| " + std::to_string(idx) + ", " + std::to_string(k));
     asm_instructions[idx].complete_jump(k);
 }
 
