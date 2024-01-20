@@ -37,6 +37,7 @@ class MemoryManager {
 
     std::vector<Expression> expr_buffor;
     std::vector<Value> args_decl_buffor;
+    std::vector<bool> used_op;
 
     int loop_depth = 0;
     int line = 1;
@@ -48,6 +49,7 @@ public:
     MemoryManager() : graph(), global_consts(), consts_map(), args_decl_buffor(), asm_code() {
         configs = std::vector<Configuration>();
         expr_buffor = std::vector<Expression>();
+        used_op = std::vector<bool>(3, false);
         logger.log("Created MemoryManager | graph.size=" + std::to_string(graph.size()));
     }
 
@@ -96,10 +98,13 @@ public:
     void place_expr_values_in_rb_rc(const std::string& val1, const std::string& val1_idx, const std::string& val2,
                                     const std::string& val2_idx, const int proc_num);
     void place_expr_val_in_r(const std::string& val, const std::string& val_idx, const int proc_num, const std::string& r);
+    void place_expr_values_in_rb_rc_reuse(const std::string& val1, const std::string& val1_idx, const std::string& val2,
+                                          const std::string& val2_idx, const int proc_num, const int to_reuse);
 
     void handle_special_case(Expression* expr, const int proc_num);
     void handle_special_div(Expression* expr, const int proc_num);
     void handle_special_mul(Expression* expr, const int proc_num);
+    int val_to_reuse(std::shared_ptr<CodeBlock> block, Expression* expr);
 
     void resolve_jumps();
     void jump_to_main(const int i);

@@ -25,6 +25,8 @@ public:
     int procedure_num = -1;
     int depth;
     std::string block_type;
+    bool repeat_begin = false;
+    bool if_else_end = false;
 
     CodeBlock(int id, AsmCode* code) : ID(id) {
         asm_code = code;

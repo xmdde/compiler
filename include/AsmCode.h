@@ -50,13 +50,13 @@ public:
 };
 
 class AsmCode {
-    // logging::Logger logger = logging::Logger("asm_logs.log");
     int ins_ptr = 0;
     std::vector<AsmInstruction> asm_instructions;
 
 public:
     int mul_k;
     int div_k;
+    int mod_k;
 
     AsmCode() : asm_instructions() {}
 
@@ -78,6 +78,7 @@ public:
 
     void asm_multiply();
     void asm_divide();
+    void asm_modulo();
 
     void create_const_in_reg(long long n, const std::string& reg);
     void store_ra_in_p(const int p_id);
