@@ -91,6 +91,9 @@ public:
     void cond__eq(const int block_id);
     void cond__neq(const int block_id);
 
+    void cond_eq_zero(const int block_id);
+    void cond_neq_zero(const int block_id);
+
     void get_ins_to_complete(std::vector<int>& ins_to_resolve);
     int get_block_id(const int idx);
     bool get_where_jump_type(const int idx);

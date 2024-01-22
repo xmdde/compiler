@@ -46,7 +46,6 @@ void AsmCode::place_id_in_ra(const int id, const int idx_id, const bool is_id_pa
 }
 
 void AsmCode::place_id_in_ra_idx_num(const int id, const long long idx, const bool is_id_param) {
-    // logger.log("|place_id_in_ra_idx_num| id=" + std::to_string(id) + ", idx=" + std::to_string(idx));
     create_const_in_reg(id, "e");
     create_const_in_reg(idx, "f");
     if (is_id_param) {
@@ -124,6 +123,18 @@ void AsmCode::cond__neq(const int block_id) {  // b,c
     asm_instructions.push_back(AsmInstruction("JPOS", ins_ptr++, true, block_id));
     asm_instructions.push_back(AsmInstruction("GET", "c", ins_ptr++));
     asm_instructions.push_back(AsmInstruction("SUB", "b", ins_ptr++));
+    asm_instructions.push_back(AsmInstruction("JPOS", ins_ptr++, true, block_id));
+    asm_instructions.push_back(AsmInstruction("JUMP", ins_ptr++, false, block_id));
+}
+
+void AsmCode::cond_eq_zero(const int block_id) { // b
+    asm_instructions.push_back(AsmInstruction("GET", "b", ins_ptr++, "# check ="));
+    asm_instructions.push_back(AsmInstruction("JZERO", ins_ptr++, true, block_id));
+    asm_instructions.push_back(AsmInstruction("JUMP", ins_ptr++, false, block_id));
+}
+
+void AsmCode::cond_neq_zero(const int block_id) { // b
+    asm_instructions.push_back(AsmInstruction("GET", "b", ins_ptr++, "# check !="));
     asm_instructions.push_back(AsmInstruction("JPOS", ins_ptr++, true, block_id));
     asm_instructions.push_back(AsmInstruction("JUMP", ins_ptr++, false, block_id));
 }

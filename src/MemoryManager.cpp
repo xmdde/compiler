@@ -658,14 +658,27 @@ void MemoryManager::translate_cond_block(std::shared_ptr<CodeBlock> block) {
     const std::string val1_idx = block->get_val_idx();
     const std::string val2 = block->get_val2();
     const std::string val2_idx = block->get_val2_idx();
-    place_expr_values_in_rb_rc(val1, val1_idx, val2, val2_idx, block->procedure_num);
+    bool is_c_zero = (val2 == "0");
+    if (is_c_zero) {
+        place_expr_val_in_r(val1, val1_idx, block->procedure_num, "b");
+    } else {
+        place_expr_values_in_rb_rc(val1, val1_idx, val2, val2_idx, block->procedure_num);
+    }
 
     switch (block->get_cond()) {  // b,c used
     case CondOperatorType::_EQ:
-        asm_code.cond__eq(block->ID);
+        if (is_c_zero) {
+            asm_code.cond_eq_zero(block->ID);
+        } else {
+            asm_code.cond__eq(block->ID);
+        }
         break;
     case CondOperatorType::_NEQ:
-        asm_code.cond__neq(block->ID);
+        if (is_c_zero) {
+            asm_code.cond_neq_zero(block->ID);
+        } else {
+            asm_code.cond__neq(block->ID);
+        }
         break;
     case CondOperatorType::_LLEQ:
         asm_code.cond__lleq("b", "c", block->ID);
@@ -677,7 +690,11 @@ void MemoryManager::translate_cond_block(std::shared_ptr<CodeBlock> block) {
         asm_code.cond__lless("b", "c", block->ID);
         break;
     case CondOperatorType::_LMORE:
-        asm_code.cond__lless("c", "b", block->ID);
+        if (is_c_zero) {
+            asm_code.cond_neq_zero(block->ID);
+        } else {
+            asm_code.cond__lless("c", "b", block->ID);
+        }
         break;
     }
     loop_depth++;
@@ -716,7 +733,12 @@ void MemoryManager::translate_procedure_call(std::shared_ptr<CodeBlock> block) {
         } else {
             procedures[block->procedure_num].initialize((*params)[i], (*params_info)[i].first);
         }
-        asm_code.store_ra_in_p((*params_info)[i].second);
+        if (i == 0) {
+            asm_code.store_ra_in_p((*params_info)[i].second);  // ?
+        } else {
+            asm_code.add("INC", "g");
+            asm_code.add("STORE", "g");
+        }
     }
     // load k to p with return adress
     asm_code.create_const_in_reg(procedures[proc_id].get_return_adress(), "b");
