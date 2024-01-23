@@ -2,6 +2,7 @@
 #define COMPILER_INCLUDE_VALUE_H
 
 #include <string>
+#include <regex>
 
 enum ValType {
     _NUM, _ID, _ARR
@@ -92,6 +93,35 @@ public:
 
     ExprOperatorType get_operator() {
         return op;
+    }
+
+    bool is_power_of_2(const std::string& val) {
+        std::smatch matcher;
+        if (std::regex_match(val, matcher, std::regex("^\\d*$"))) {
+            const long long n = std::stoll(val);
+            const long long i = n & (n - 1);
+            if (i == 0) {
+                return true;
+            } else return false;
+        } else {
+            return false;
+        }
+    }
+
+    bool is_special_case() {
+        if (op == ExprOperatorType::_PLUS) {
+            return (val2 == "0" || val2 == "1" || val2 == "2" || val2 == "3" || val2 == "4" || val2 == "5" ||
+                    val1 == "0" || val1 == "1" || val1 == "2" || val1 == "3" || val1 == "4" || val1 == "5");
+        } else if (op == ExprOperatorType::_MIN) {
+            return (val2 == "0" || val2 == "1" || val2 == "2" || val2 == "3" || val2 == "4" || val2 == "5");
+        } else if (op == ExprOperatorType::_MUL) {
+            return (val1 == "1" || val2 == "1" || val1 == "0" || val2 == "0" || is_power_of_2(val1) || is_power_of_2(val2));
+        } else if (op == ExprOperatorType::_DIV) {
+            return ((val1 == val2 && val1_idx == val2_idx) || val2 == "1" || is_power_of_2(val2));
+        } else if (op == ExprOperatorType::_MOD) {
+            return (val2 == "2");
+        }
+        return false;
     }
 };
 

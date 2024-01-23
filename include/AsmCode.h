@@ -50,13 +50,13 @@ public:
 };
 
 class AsmCode {
-    logging::Logger logger = logging::Logger("asm_logs.log");
     int ins_ptr = 0;
     std::vector<AsmInstruction> asm_instructions;
 
 public:
     int mul_k;
     int div_k;
+    int mod_k;
 
     AsmCode() : asm_instructions() {}
 
@@ -78,6 +78,7 @@ public:
 
     void asm_multiply();
     void asm_divide();
+    void asm_modulo();
 
     void create_const_in_reg(long long n, const std::string& reg);
     void store_ra_in_p(const int p_id);
@@ -89,6 +90,9 @@ public:
     void cond__lleq(const std::string& r1, const std::string& r2, const int block_id);
     void cond__eq(const int block_id);
     void cond__neq(const int block_id);
+
+    void cond_eq_zero(const int block_id);
+    void cond_neq_zero(const int block_id);
 
     void get_ins_to_complete(std::vector<int>& ins_to_resolve);
     int get_block_id(const int idx);

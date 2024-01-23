@@ -34,6 +34,13 @@ int MemoryManager::add_assign_block(const std::string& val, const std::string& v
     logger.log("Created Configuration (" + std::to_string(id_counter) + "," + std::to_string(id_counter) + ") | configs.size=" +
                std::to_string(configs.size()));
     id_counter++;
+    if (expr_buffor.back().get_operator() == ExprOperatorType::_MUL) {
+        used_op[0] = true;
+    } else if (expr_buffor.back().get_operator() == ExprOperatorType::_DIV) {
+        used_op[1] = true;
+    } else if (expr_buffor.back().get_operator() == ExprOperatorType::_MOD) {
+        used_op[2] = true;
+    }
     return configs.size() - 1;
 }
 
@@ -83,8 +90,8 @@ void MemoryManager::clear_args_decl_buffor() {
 
 void MemoryManager::add_val_to_buffor(ValType type, const std::string& name) {
     args_decl_buffor.push_back(Value(memory_counter, type, name, true));
-    logger.log("|add_val_to_buffor| Created value template: " + args_decl_buffor.back().get_vals_to_logger() + "| args_decl_buffor.size=" +
-               std::to_string(args_decl_buffor.size()));
+    logger.log("|add_val_to_buffor| Created value template: " + args_decl_buffor.back().get_vals_to_logger() +
+               "| args_decl_buffor.size=" + std::to_string(args_decl_buffor.size()));
     memory_counter++;
 }
 
@@ -130,6 +137,8 @@ int MemoryManager::connect_if(const std::string& cond_config, const std::string&
     int from = configs[cond_idx].end_id;
     int comm_begin = configs[commands_idx].begin_id;
     int comm_end = configs[commands_idx].end_id;
+    graph[comm_end]->if_else_end = true;
+
     logger.log("Setting next_TRUE of block ID=" + std::to_string(from) + " to block ID=" + std::to_string(comm_begin));
     graph[from]->set_next_true(comm_begin);
     logger.log("Setting next_FALSE of block ID=" + std::to_string(from) + " to block ID=" + std::to_string(endif_idx));
@@ -168,6 +177,9 @@ int MemoryManager::connect_if_else(const std::string& cond_config, const std::st
 
     int comm_end = configs[commands_idx].end_id;
     int else_end = configs[else_idx].end_id;
+    graph[comm_end]->if_else_end = true;
+    graph[else_end]->if_else_end = true;
+
     logger.log("Setting next_TRUE and next_FALSE of block ID=" + std::to_string(comm_end) + " to block ID=" + std::to_string(endif_idx));
     graph[comm_end]->set_next_true(endif_idx);
     graph[comm_end]->set_next_false(endif_idx);
@@ -193,6 +205,8 @@ int MemoryManager::connect_while(const std::string& cond_config, const std::stri
     int from = configs[cond_idx].end_id;
     int comm_begin = configs[commands_idx].begin_id;
     int comm_end = configs[commands_idx].end_id;
+    graph[comm_end]->if_else_end = true;
+
     logger.log("Setting next_TRUE of block ID=" + std::to_string(from) + " to block ID=" + std::to_string(comm_begin));
     graph[from]->set_next_true(comm_begin);
     logger.log("Setting next_FALSE of block ID=" + std::to_string(from) + " to block ID=" + std::to_string(endwhile_id));
@@ -220,6 +234,7 @@ int MemoryManager::connect_repeat_until(const std::string& commands_config, cons
     int cond = configs[cond_idx].end_id;
     int comm_begin = configs[commands_idx].begin_id;
     int comm_end = configs[commands_idx].end_id;
+    graph[comm_begin]->repeat_begin = true;
 
     logger.log("Setting next_TRUE and next_FALSE of block ID=" + std::to_string(comm_end) + " to block ID=" + std::to_string(cond));
     graph[comm_end]->set_next_true(cond);
@@ -374,14 +389,19 @@ void MemoryManager::translate_block(std::shared_ptr<CodeBlock> block) {
         if (procedures[current_proc].get_local_vals_size() != 0)
             line++;
     }
+    block->set_depth(loop_depth);
 
-    std::string bt = block->block_type;
+    const std::string bt = block->block_type;
     if (bt == "KeywordBlock") {
         translate_keyword_block(block);
-        asm_code.jump_to_next_block(block->ID);
+        if (block->if_else_end) {
+            asm_code.jump_to_next_block(block->ID);
+        }
     } else if (bt == "AssignBlock") {
         translate_assign_block(block);
-        asm_code.jump_to_next_block(block->ID);
+        if (block->if_else_end) {
+            asm_code.jump_to_next_block(block->ID);
+        }
     } else if (bt == "CondBlock") {
         translate_cond_block(block);
     } else {
@@ -476,32 +496,55 @@ void MemoryManager::translate_assign_block(std::shared_ptr<CodeBlock> block) {
     const int proc = block->procedure_num;
 
     Expression* expr = block->get_expression();
-    place_expr_values_in_rb_rc(expr->get_val1(), expr->get_val1_idx(), expr->get_val2(), expr->get_val2_idx(), proc);
+    const bool opt = expr->is_special_case();
+    if (opt) {
+        logger.log("possible optimization");
+        handle_special_case(expr, proc);
+    } else if (val_to_reuse(block, expr) == -1) {
+        place_expr_values_in_rb_rc(expr->get_val1(), expr->get_val1_idx(), expr->get_val2(), expr->get_val2_idx(), proc);
+    } else {
+        place_expr_values_in_rb_rc_reuse(expr->get_val1(), expr->get_val1_idx(), expr->get_val2(), expr->get_val2_idx(),
+                                         proc, val_to_reuse(block, expr));
+    }
     check_for_errors_help(expr->get_val1(), expr->get_val1_idx(), expr->get_val2(), expr->get_val2_idx(), proc);
+
+    bool reuse_g = false;
+    if (block->ID >= 1 && graph[block->ID-1]->block_type == "AssignBlock" && block->get_depth() == graph[block->ID-1]->get_depth() &&
+        !graph[block->ID-1]->if_else_end && !block->repeat_begin && block->procedure_num == graph[block->ID-1]->procedure_num &&
+        block->get_val() == graph[block->ID-1]->get_val() && block->get_val_idx() == graph[block->ID-1]->get_val_idx()) {
+        reuse_g = true;
+    }
 
     const std::string val = block->get_val();
     const std::string val_idx = block->get_val_idx();
+    if (!reuse_g) {
+        if (val_idx == "") {
+            int idx_id = get_val_id(val, ValType::_ID, proc);
+            asm_code.create_const_in_reg(idx_id, "g");
+            if (procedures[proc].if_param(val, ValType::_ID)) {
+                logger.log(val + " is param - call indirect_load_put()");
+                asm_code.indirect_load_put("g");
+            } else {
+                procedures[proc].initialize(val, ValType::_ID);
+            }
+        } else {
+            if (is_num(val_idx)) {
+                asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoll(val_idx),
+                                                procedures[proc].if_param(val, ValType::_ARR));
+            } else {
+                int idx_id = get_val_id(val_idx, ValType::_ID, proc);
+                check_for_errors(val_idx, ValType::_ID, proc);
+                asm_code.place_id_in_ra(get_val_id(val, ValType::_ARR, proc), idx_id, procedures[proc].if_param(val, ValType::_ARR),
+                                        procedures[proc].if_param(val_idx, ValType::_ID));
+            }
+            asm_code.add("PUT", "g");
+        }
+    }
 
-    if (val_idx == "") {
-        int idx_id = get_val_id(val, ValType::_ID, proc);
-        asm_code.create_const_in_reg(idx_id, "g");
-        if (procedures[proc].if_param(val, ValType::_ID)) {
-            logger.log(val + " is param - call indirect_load_put()");
-            asm_code.indirect_load_put("g");
-        } else {
-            procedures[proc].initialize(val, ValType::_ID);
-        }
-    } else {
-        if (is_num(val_idx)) {
-            asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc), std::stoll(val_idx),
-                                            procedures[proc].if_param(val, ValType::_ARR));
-        } else {
-            int idx_id = get_val_id(val_idx, ValType::_ID, proc);
-            check_for_errors(val_idx, ValType::_ID, proc);
-            asm_code.place_id_in_ra(get_val_id(val, ValType::_ARR, proc), idx_id, procedures[proc].if_param(val, ValType::_ARR),
-                                    procedures[proc].if_param(val_idx, ValType::_ID));
-        }
-        asm_code.add("PUT", "g");
+    if (opt) {
+        asm_code.add("GET", "b");
+        asm_code.add("STORE", "g", "# " + val + ":=");
+        return;
     }
 
     switch (expr->get_operator()) {  // b,c used!
@@ -533,87 +576,77 @@ void MemoryManager::translate_assign_block(std::shared_ptr<CodeBlock> block) {
         break;
     default:  // mod
         asm_code.add("STRK", "h", "# store k in h");
-        asm_code.add("JUMP", std::to_string(asm_code.div_k), "# modulo");
+        asm_code.add("JUMP", std::to_string(asm_code.mod_k), "# modulo");
         asm_code.add("GET", "b");
         asm_code.add("STORE", "g", "# " + val + ":=");
         break;
     }
 }
 
-void MemoryManager::place_expr_values_in_rb_rc(const std::string& val1, const std::string& val1_idx, const std::string& val2,
-                                               const std::string& val2_idx, const int proc_num) {
-    logger.log("|place_expr_values_in_rb_rc| " + val1 + ", " + val1_idx + ", " + val2 + ", " + val2_idx);
-    bool opt = false;
-    if (val1 == val2 && val1_idx == val2_idx) {
-        opt = true;
-    }
-    if (val1_idx == "") {
-        if (is_num(val1)) {
-            asm_code.create_const_in_reg(std::stoll(val1), "b");
+void MemoryManager::place_expr_val_in_r(const std::string& val, const std::string& val_idx, const int proc_num, const std::string& r) {
+    logger.log("|place_expr_val_in_rb| " + val + ", " + val_idx);
+    if (val_idx == "") {
+        if (is_num(val)) {
+            asm_code.create_const_in_reg(std::stoll(val), r);
         } else {
-            int idx_id = get_val_id(val1, ValType::_ID, proc_num);
+            int idx_id = get_val_id(val, ValType::_ID, proc_num);
             asm_code.create_const_in_reg(idx_id, "a");
-            if (procedures[proc_num].if_param(val1, ValType::_ID)) {
-                logger.log(val1 + " is param - call indirect_load_put()");
+            if (procedures[proc_num].if_param(val, ValType::_ID)) {
+                logger.log(val + " is param - call indirect_load_put()");
                 asm_code.indirect_load_put("a");
             }
             asm_code.add("LOAD", "a");
-            asm_code.add("PUT", "b");
+            asm_code.add("PUT", r);
         }
     } else {
         //change id in ra
-        bool is_val1_param = procedures[proc_num].if_param(val1, ValType::_ARR);
-        bool is_idx1_param = procedures[proc_num].if_param(val1_idx, ValType::_ID);
-        logger.log("if params: " + val1 + " " + std::to_string(is_val1_param) + ", " + val1_idx + " " + std::to_string(is_idx1_param));
+        bool is_val_param = procedures[proc_num].if_param(val, ValType::_ARR);
+        bool is_idx_param = procedures[proc_num].if_param(val_idx, ValType::_ID);
+        logger.log("if params: " + val + " " + std::to_string(is_val_param) + ", " + val_idx + " " + std::to_string(is_idx_param));
 
-        if (is_num(val1_idx)) {
-            asm_code.place_id_in_ra_idx_num(get_val_id(val1, ValType::_ARR, proc_num), std::stoll(val1_idx), is_val1_param);
+        if (is_num(val_idx)) {
+            asm_code.place_id_in_ra_idx_num(get_val_id(val, ValType::_ARR, proc_num), std::stoll(val_idx), is_val_param);
             asm_code.add("LOAD", "a");
-            asm_code.add("PUT", "b");
+            asm_code.add("PUT", r);
         } else {
-            int idx_id = get_val_id(val1_idx, ValType::_ID, proc_num);
-            asm_code.place_id_in_ra(get_val_id(val1, ValType::_ARR, proc_num), idx_id, is_val1_param, is_idx1_param);  // uses e,f
+            int idx_id = get_val_id(val_idx, ValType::_ID, proc_num);
+            asm_code.place_id_in_ra(get_val_id(val, ValType::_ARR, proc_num), idx_id, is_val_param, is_idx_param);  // uses e,f
             asm_code.add("LOAD", "a");
-            asm_code.add("PUT", "b");
+            asm_code.add("PUT", r);
         }
     }
+}
 
+void MemoryManager::place_expr_values_in_rb_rc(const std::string& val1, const std::string& val1_idx, const std::string& val2,
+                                               const std::string& val2_idx, const int proc_num) {
+    logger.log("|place_expr_values_in_rb_rc| " + val1 + ", " + val1_idx + ", " + val2 + ", " + val2_idx);
+
+    place_expr_val_in_r(val1, val1_idx, proc_num, "b");
     if (val2 == "")  // _NOOP
         return;
-    
-    if (opt) {
+
+    if (val1 == val2 && val1_idx == val2_idx) {
         asm_code.add("PUT", "c");
         return;
     }
+    place_expr_val_in_r(val2, val2_idx, proc_num, "c");
+}
 
-    if (val2_idx == "") {
-        if (is_num(val2)) {
-            asm_code.create_const_in_reg(std::stoll(val2), "c");
-        } else {
-            int idx_id = get_val_id(val2, ValType::_ID, proc_num);
-            asm_code.create_const_in_reg(idx_id, "a");
-            if (procedures[proc_num].if_param(val2, ValType::_ID)) {
-                logger.log(val2 + " is param - call indirect_load_put()");
-                asm_code.indirect_load_put("a");
-            }
-            asm_code.add("LOAD", "a");
+void MemoryManager::place_expr_values_in_rb_rc_reuse(const std::string& val1, const std::string& val1_idx, const std::string& val2,
+                                                     const std::string& val2_idx, const int proc_num, const int to_reuse) {
+    if (to_reuse == 1) {
+        asm_code.add("PUT", "b");
+        if (val2 == "")
+            return;
+        if (val1 == val2 && val1_idx == val2_idx) {
             asm_code.add("PUT", "c");
+            return;
+        } else {
+            place_expr_val_in_r(val2, val2_idx, proc_num, "c");
         }
     } else {
-        bool is_val2_param = procedures[proc_num].if_param(val2, ValType::_ARR);
-        bool is_idx2_param = procedures[proc_num].if_param(val2_idx, ValType::_ID);
-        logger.log("if params: " + val2 + " " + std::to_string(is_val2_param) + ", " + val2_idx + " " + std::to_string(is_idx2_param));
-
-        if (is_num(val2_idx)) {
-            asm_code.place_id_in_ra_idx_num(get_val_id(val2, ValType::_ARR, proc_num), std::stoll(val2_idx), is_val2_param);
-            asm_code.add("LOAD", "a");
-            asm_code.add("PUT", "c");
-        } else {
-            int idx_id = get_val_id(val2_idx, ValType::_ID, proc_num);
-            asm_code.place_id_in_ra(get_val_id(val2, ValType::_ARR, proc_num), idx_id, is_val2_param, is_idx2_param);  // uses e,f
-            asm_code.add("LOAD", "a");
-            asm_code.add("PUT", "c");
-        }
+        asm_code.add("PUT", "c");
+        place_expr_val_in_r(val1, val1_idx, proc_num, "b");
     }
 }
 
@@ -625,14 +658,27 @@ void MemoryManager::translate_cond_block(std::shared_ptr<CodeBlock> block) {
     const std::string val1_idx = block->get_val_idx();
     const std::string val2 = block->get_val2();
     const std::string val2_idx = block->get_val2_idx();
-    place_expr_values_in_rb_rc(val1, val1_idx, val2, val2_idx, block->procedure_num);
+    bool is_c_zero = (val2 == "0");
+    if (is_c_zero) {
+        place_expr_val_in_r(val1, val1_idx, block->procedure_num, "b");
+    } else {
+        place_expr_values_in_rb_rc(val1, val1_idx, val2, val2_idx, block->procedure_num);
+    }
 
     switch (block->get_cond()) {  // b,c used
     case CondOperatorType::_EQ:
-        asm_code.cond__eq(block->ID);
+        if (is_c_zero) {
+            asm_code.cond_eq_zero(block->ID);
+        } else {
+            asm_code.cond__eq(block->ID);
+        }
         break;
     case CondOperatorType::_NEQ:
-        asm_code.cond__neq(block->ID);
+        if (is_c_zero) {
+            asm_code.cond_neq_zero(block->ID);
+        } else {
+            asm_code.cond__neq(block->ID);
+        }
         break;
     case CondOperatorType::_LLEQ:
         asm_code.cond__lleq("b", "c", block->ID);
@@ -644,7 +690,11 @@ void MemoryManager::translate_cond_block(std::shared_ptr<CodeBlock> block) {
         asm_code.cond__lless("b", "c", block->ID);
         break;
     case CondOperatorType::_LMORE:
-        asm_code.cond__lless("c", "b", block->ID);
+        if (is_c_zero) {
+            asm_code.cond_neq_zero(block->ID);
+        } else {
+            asm_code.cond__lless("c", "b", block->ID);
+        }
         break;
     }
     loop_depth++;
@@ -674,7 +724,8 @@ void MemoryManager::translate_procedure_call(std::shared_ptr<CodeBlock> block) {
                          " (l. " + std::to_string(line) + ")" << std::endl;
             exit(-1);
         }
-        logger.log("put id=" + std::to_string(id) + +"(" + (*params)[i] + ") in p_id=" + std::to_string((*params_info)[i].second));
+        logger.log("put id=" + std::to_string(id) + +"(" + (*params)[i] + ") in p_id=" +
+                   std::to_string((*params_info)[i].second));
         asm_code.create_const_in_reg(id, "a");
         if (procedures[block->procedure_num].if_param((*params)[i], (*params_info)[i].first)) {
             logger.log((*params)[i] + " is param");
@@ -682,13 +733,111 @@ void MemoryManager::translate_procedure_call(std::shared_ptr<CodeBlock> block) {
         } else {
             procedures[block->procedure_num].initialize((*params)[i], (*params_info)[i].first);
         }
-        asm_code.store_ra_in_p((*params_info)[i].second);
+        if (i == 0) {
+            asm_code.store_ra_in_p((*params_info)[i].second);  // ?
+        } else {
+            asm_code.add("INC", "g");
+            asm_code.add("STORE", "g");
+        }
     }
     // load k to p with return adress
     asm_code.create_const_in_reg(procedures[proc_id].get_return_adress(), "b");
     asm_code.add("STRK", "a");
     asm_code.add("STORE", "b");
     asm_code.add("JUMP", std::to_string(graph[procedures[proc_id].get_head()]->first_instruction_k), "# jump to procedure");
+}
+
+void MemoryManager::handle_special_case(Expression* expr, const int proc_num) {
+    switch (expr->get_operator()) {
+    case ExprOperatorType::_MIN:
+        place_expr_val_in_r(expr->get_val1(), expr->get_val1_idx(), proc_num, "b");
+        for (int i = 1; i <= std::stoi(expr->get_val2()); i++) {
+            asm_code.add("DEC", "b");
+        }
+        break;
+    case ExprOperatorType::_PLUS:
+        if (expr->get_val2() == "0" || expr->get_val2() == "1" || expr->get_val2() == "2" || expr->get_val2() == "3" ||
+            expr->get_val2() == "4" || expr->get_val2() == "5") {
+            place_expr_val_in_r(expr->get_val1(), expr->get_val1_idx(), proc_num, "b");
+            for (int i = 1; i <= std::stoi(expr->get_val2()); i++) {
+                asm_code.add("INC", "b");
+            }
+        } else {
+            place_expr_val_in_r(expr->get_val2(), expr->get_val2_idx(), proc_num, "b");
+            for (int i = 1; i <= std::stoi(expr->get_val1()); i++) {
+                asm_code.add("INC", "b");
+            }
+        }
+        break;
+    case ExprOperatorType::_DIV:
+        handle_special_div(expr, proc_num);
+        break;
+    case ExprOperatorType::_MUL:
+        handle_special_mul(expr, proc_num);
+        break;
+    case ExprOperatorType::_MOD:
+        place_expr_val_in_r(expr->get_val1(), expr->get_val1_idx(), proc_num, "b");
+        asm_code.add("GET", "b");
+        asm_code.add("SHR", "b");
+        asm_code.add("SHL", "b");
+        asm_code.add("SUB", "b");
+        asm_code.add("PUT", "b");
+        break;
+    default:
+        break;
+    }
+}
+
+void MemoryManager::handle_special_div(Expression* expr, const int proc_num) {
+    if (expr->get_val1() == expr->get_val2() && expr->get_val1_idx() == expr->get_val2_idx()) {
+        if (expr->get_val1() == "0") {
+            asm_code.create_const_in_reg(0, "b");
+        } else {
+            asm_code.create_const_in_reg(1, "b");
+        }
+        return;
+    }
+    place_expr_val_in_r(expr->get_val1(), expr->get_val1_idx(), proc_num, "b");
+    if (expr->get_val2() == "1") {
+        return;
+    }
+    for (int i = 1; i <= std::log2(std::stoll(expr->get_val2())); i++) {
+        asm_code.add("SHR", "b");
+    }
+}
+
+void MemoryManager::handle_special_mul(Expression* expr, const int proc_num) {
+    if (expr->get_val1() == "0" || expr->get_val2() == "0") {
+        asm_code.create_const_in_reg(0, "b");
+        return;
+    }
+    if (expr->get_val1() == "1") {
+        place_expr_val_in_r(expr->get_val2(), expr->get_val2_idx(), proc_num, "b");
+    } else if (expr->get_val2() == "1") {
+        place_expr_val_in_r(expr->get_val1(), expr->get_val1_idx(), proc_num, "b");
+    } else if (expr->is_power_of_2(expr->get_val1())) {
+        place_expr_val_in_r(expr->get_val2(), expr->get_val2_idx(), proc_num, "b");
+        for (int i = 1; i <= std::log2(std::stoll(expr->get_val1())); i++) {
+            asm_code.add("SHL", "b");
+        }
+    } else {
+        place_expr_val_in_r(expr->get_val1(), expr->get_val1_idx(), proc_num, "b");
+        for (int i = 1; i <= std::log2(std::stoll(expr->get_val2())); i++) {
+            asm_code.add("SHL", "b");
+        }
+    }
+}
+
+int MemoryManager::val_to_reuse(std::shared_ptr<CodeBlock> block, Expression* expr) {
+    if (block->ID >= 1 && graph[block->ID-1]->block_type == "AssignBlock" && block->get_depth() == graph[block->ID-1]->get_depth() &&
+        !graph[block->ID-1]->if_else_end && !block->repeat_begin && block->procedure_num == graph[block->ID-1]->procedure_num) {
+        if (graph[block->ID-1]->get_val() == expr->get_val1() && graph[block->ID-1]->get_val_idx() == expr->get_val1_idx()) {
+            return 1;
+        } else if (graph[block->ID-1]->get_val() == expr->get_val2() && graph[block->ID-1]->get_val_idx() == expr->get_val2_idx()) {
+            return 2;
+        }
+    }
+    return -1;
 }
 
 // initialized?
@@ -707,20 +856,16 @@ void MemoryManager::check_for_errors_help(const std::string& val1, const std::st
                                           const std::string& val2_idx, const int proc_num) {
     if (val1_idx == "" && !is_num(val1)) {
         check_for_errors(val1, ValType::_ID, proc_num);
-    } else {
-        if (!is_num(val1_idx)) {
-            check_for_errors(val1_idx, ValType::_ID, proc_num);
-        }
+    } else if (!is_num(val1_idx)) {
+        check_for_errors(val1_idx, ValType::_ID, proc_num);
     }
     if (val2 == "") {
         return;
     }
     if (val2_idx == "" && !is_num(val2)) {
         check_for_errors(val2, ValType::_ID, proc_num);
-    } else {
-        if (!is_num(val2_idx)) {
-            check_for_errors(val2_idx, ValType::_ID, proc_num);
-        }
+    } else if (!is_num(val2_idx)) {
+        check_for_errors(val2_idx, ValType::_ID, proc_num);
     }
 }
 
@@ -728,9 +873,16 @@ void MemoryManager::check_for_errors_help(const std::string& val1, const std::st
 
 void MemoryManager::translate() {
     const int first_jump = asm_code.get_k();
-    asm_code.add("JUMP", "", "# przeskocz mul/div i procedury");
-    asm_code.asm_multiply();
-    asm_code.asm_divide();
+    asm_code.add("JUMP", "", "# przeskocz mul/div/mod i procedury");
+    if (used_op[0]) {
+        asm_code.asm_multiply();
+    }
+    if (used_op[1]) {
+        asm_code.asm_divide();
+    }
+    if (used_op[2]) {
+        asm_code.asm_modulo();
+    }
     for (auto g : graph)
         translate_block(g);
     jump_to_main(first_jump);
