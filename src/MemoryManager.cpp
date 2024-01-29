@@ -3,6 +3,7 @@
 
 #include <regex>
 #include <fstream>
+#include <cmath>
 #include <iostream>
 
 bool is_num(const std::string& val) {
@@ -681,12 +682,21 @@ void MemoryManager::translate_cond_block(std::shared_ptr<CodeBlock> block) {
         }
         break;
     case CondOperatorType::_LLEQ:
+        if (is_c_zero) {
+            asm_code.create_const_in_reg(0, "c");
+        }
         asm_code.cond__lleq("b", "c", block->ID);
         break;
     case CondOperatorType::_LMEQ:
+        if (is_c_zero) {
+            asm_code.create_const_in_reg(0, "c");
+        }
         asm_code.cond__lleq("c", "b", block->ID);
         break;
     case CondOperatorType::_LLESS:
+        if (is_c_zero) {
+            asm_code.create_const_in_reg(0, "c");
+        }
         asm_code.cond__lless("b", "c", block->ID);
         break;
     case CondOperatorType::_LMORE:
