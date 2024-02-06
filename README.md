@@ -1,5 +1,5 @@
 # Compiler
-Kompilator prostego języka imperatywnego w języku C++ z wykorzystaniem Flex i Bison. Napisany w ramach kursu Języki Formalne i Techniki Translacji 2023/2024. <br>
+Kompilator prostego języka imperatywnego w języku C++ z wykorzystaniem Flex i Bison. Napisany w ramach kursu Języki Formalne i Techniki Translacji <br> INA, PWr 2023/2024 <br>
 **Autor:** Justyna Ziemichód
 ## Kompilacja
 ```
